@@ -65,3 +65,33 @@ npm run get-contract
 | Airdrop | `13e322f2-18dc-4f57-8eed-4bddfc50f85e` |
 
 참고 문서: https://docs.arc.io/build
+
+## Base 토큰 컨트랙트
+
+Base 배포용 ERC-20 컨트랙트는 `contracts/BaseActivityToken.sol`입니다. OpenZeppelin 기반이며 기본 구성은 다음과 같습니다.
+
+- ERC-20 + burn
+- EIP-2612 permit
+- owner-only mint
+- `maxSupply` 상한
+
+먼저 `.env`에 Base 배포용 값을 채웁니다. 실제 개인키는 `.env`에만 두고 커밋하지 않습니다.
+
+```dotenv
+BASE_NETWORK=base-sepolia
+BASE_RPC_URL=
+BASE_DEPLOYER_PRIVATE_KEY=
+BASE_TOKEN_NAME=Base Activity Log
+BASE_TOKEN_SYMBOL=BALOG
+BASE_TOKEN_INITIAL_SUPPLY=1000000
+BASE_TOKEN_MAX_SUPPLY=1000000
+BASE_TOKEN_OWNER=
+```
+
+`BASE_NETWORK`는 `base-sepolia` 또는 `base-mainnet`을 지원합니다. `BASE_RPC_URL`을 비워두면 공식 공개 RPC를 사용합니다.
+
+```bash
+npm run deploy-base-token
+```
+
+배포 스크립트는 RPC의 chain id가 선택한 Base 네트워크와 맞는지 확인한 뒤 배포합니다. 기본값은 Base Sepolia이며, Base 공식 네트워크 정보는 https://docs.base.org/base-chain/quickstart/connecting-to-base 를 기준으로 합니다.
