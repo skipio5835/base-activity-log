@@ -1,81 +1,37 @@
-# Arc Circle Contracts Deployment
+# Base Activity Log
 
-Arc 문서의 Circle Contracts quickstart를 기반으로 Arc Testnet에 사전 감사 템플릿을 배포하는 Node.js/TypeScript 프로젝트입니다.
+Base 체인 활동과 토큰 배포를 준비하기 위한 Node.js/TypeScript 작업 공간입니다. 중심 작업은 Base Sepolia 또는 Base Mainnet에 ERC-20 토큰을 배포하고, 이후 Base 생태계 활동 기록에 쓸 컨트랙트/스크립트를 관리하는 것입니다.
 
-## 준비
+Circle Arc 관련 코드는 참고용으로 함께 보관합니다.
 
-1. Circle Developer Console에서 Standard API Key와 Entity Secret을 준비합니다.
-2. `.env.example`을 `.env`로 복사하고 아래 값을 채웁니다.
+## 주요 구성
 
-```dotenv
-CIRCLE_API_KEY=...
-CIRCLE_ENTITY_SECRET=...
-CIRCLE_WEB3_API_KEY=...
-```
-
-Entity Secret을 아직 만들지 않았다면:
-
-```bash
-npm run generate-entity-secret
-```
-
-출력된 값을 `.env`의 `CIRCLE_ENTITY_SECRET`에 저장한 뒤 Circle에 등록합니다.
-
-```bash
-npm run register-entity-secret
-```
-
-`recovery/`에 생성된 recovery file은 별도 안전한 곳에 보관하세요.
-
-## 지갑 생성
-
-Arc Testnet 배포용 Dev-Controlled SCA wallet을 생성합니다.
-
-```bash
-npm run create-wallet
-```
-
-출력의 `env.WALLET_ID`, `env.WALLET_ADDRESS` 값을 `.env`에 복사합니다.
-
-## 템플릿 배포
-
-```bash
-npm run deploy-erc20
-npm run deploy-erc721
-npm run deploy-erc1155
-npm run deploy-airdrop
-```
-
-배포 명령은 `ARC-TESTNET`에 `MEDIUM` fee level로 요청합니다. 배포 성공 응답은 실제 완료가 아니라 시작 상태이므로 출력의 `env.TRANSACTION_ID`와 `env.CONTRACT_ID`를 `.env`에 저장한 뒤 상태를 확인합니다.
-
-```bash
-npm run check-transaction
-npm run get-contract
-```
-
-트랜잭션 완료까지 기다리고 싶으면 `.env`에 `WAIT_FOR_STATE=COMPLETE`를 추가한 뒤 `npm run check-transaction`을 실행합니다.
-
-## Circle Contracts template IDs
-
-| Template | Template ID |
-| --- | --- |
-| ERC-20 | `a1b74add-23e0-4712-88d1-6b3009e85a86` |
-| ERC-721 | `76b83278-50e2-4006-8b63-5b1a2a814533` |
-| ERC-1155 | `aea21da6-0aa2-4971-9a1a-5098842b1248` |
-| Airdrop | `13e322f2-18dc-4f57-8eed-4bddfc50f85e` |
-
-참고 문서: https://docs.arc.io/build
+- `contracts/BaseActivityToken.sol`: Base 배포용 ERC-20 컨트랙트
+- `scripts/deploy-base-token.ts`: Base Sepolia/Mainnet 배포 스크립트
+- `contracts/Skipio.sol`, `contracts/ProofToken.sol`: 기존 Arc 테스트용 ERC-20 컨트랙트
+- `scripts/*`: Circle Arc, App Kit, 검증, 배포 보조 스크립트
 
 ## Base 토큰 컨트랙트
 
-Base 배포용 ERC-20 컨트랙트는 `contracts/BaseActivityToken.sol`입니다. OpenZeppelin 기반이며 기본 구성은 다음과 같습니다.
+`BaseActivityToken`은 OpenZeppelin 기반 ERC-20입니다.
 
-- ERC-20 + burn
-- EIP-2612 permit
+- ERC-20 기본 전송/잔액 기능
+- burn 지원
+- EIP-2612 permit 지원
 - owner-only mint
 - `maxSupply` 상한
 
-먼저 `.env`에 Base 배포용 값을 채웁니다. 실제 개인키는 `.env`에만 두고 커밋하지 않습니다.
+초기 공급량은 배포 시 owner에게 mint됩니다. 추가 mint는 owner만 할 수 있으며 `maxSupply`를 넘을 수 없습니다.
+
+## 준비
+
+의존성을 설치합니다.
+
+```bash
+npm install
+```
+
+`.env.example`을 `.env`로 복사한 뒤 Base 배포 값을 채웁니다. 실제 개인키는 `.env`에만 보관하고 커밋하지 않습니다.
 
 ```dotenv
 BASE_NETWORK=base-sepolia
@@ -88,10 +44,91 @@ BASE_TOKEN_MAX_SUPPLY=1000000
 BASE_TOKEN_OWNER=
 ```
 
-`BASE_NETWORK`는 `base-sepolia` 또는 `base-mainnet`을 지원합니다. `BASE_RPC_URL`을 비워두면 공식 공개 RPC를 사용합니다.
+`BASE_NETWORK`는 다음 값을 지원합니다.
+
+| Network | Chain ID | Default RPC | Explorer |
+| --- | ---: | --- | --- |
+| `base-sepolia` | `84532` | `https://sepolia.base.org` | `https://sepolia-explorer.base.org` |
+| `base-mainnet` | `8453` | `https://mainnet.base.org` | `https://base.blockscout.com` |
+
+`BASE_RPC_URL`을 비워두면 위 기본 RPC를 사용합니다. 운영/메인넷 배포에서는 전용 RPC를 쓰는 편이 좋습니다.
+
+## Base 배포
+
+먼저 컴파일과 타입 체크를 확인합니다.
+
+```bash
+npm run typecheck
+npm run compile-custom
+```
+
+Base Sepolia에 배포합니다.
 
 ```bash
 npm run deploy-base-token
 ```
 
-배포 스크립트는 RPC의 chain id가 선택한 Base 네트워크와 맞는지 확인한 뒤 배포합니다. 기본값은 Base Sepolia이며, Base 공식 네트워크 정보는 https://docs.base.org/base-chain/quickstart/connecting-to-base 를 기준으로 합니다.
+Base Mainnet에 배포하려면 `.env`에서 네트워크를 바꿉니다.
+
+```dotenv
+BASE_NETWORK=base-mainnet
+```
+
+배포 스크립트는 연결된 RPC의 chain id가 선택한 Base 네트워크와 맞는지 확인한 뒤 배포합니다. 결과에는 contract address, explorer link, deploy tx, owner, supply 정보가 출력됩니다.
+
+Base 공식 네트워크 정보: https://docs.base.org/base-chain/quickstart/connecting-to-base
+
+## 민감 정보 관리
+
+커밋하지 않는 파일과 폴더:
+
+- `.env`
+- `node_modules/`
+- `artifacts/`
+- `public/artifacts/`
+- `recovery/`
+
+개인키, Circle API key, entity secret, recovery file은 로컬에만 둡니다. 채팅이나 README, 커밋 메시지에 붙여넣지 않습니다.
+
+## Circle Arc 참고 도구
+
+이 repo에는 Circle Arc Testnet 작업용 스크립트도 함께 들어 있습니다. Base 작업과 별개로 Arc 테스트넷에 Circle Contracts 템플릿을 배포하거나 Circle App Kit 기능을 확인할 때 사용합니다.
+
+Circle Developer Console에서 Standard API Key와 Entity Secret을 준비한 뒤 `.env`에 값을 채웁니다.
+
+```dotenv
+CIRCLE_API_KEY=...
+CIRCLE_ENTITY_SECRET=...
+CIRCLE_WEB3_API_KEY=...
+```
+
+Entity Secret 생성과 등록:
+
+```bash
+npm run generate-entity-secret
+npm run register-entity-secret
+```
+
+Arc Testnet용 Dev-Controlled SCA wallet 생성:
+
+```bash
+npm run create-wallet
+```
+
+Circle Contracts 템플릿 배포:
+
+```bash
+npm run deploy-erc20
+npm run deploy-erc721
+npm run deploy-erc1155
+npm run deploy-airdrop
+```
+
+상태 확인:
+
+```bash
+npm run check-transaction
+npm run get-contract
+```
+
+Arc 참고 문서: https://docs.arc.io/build
