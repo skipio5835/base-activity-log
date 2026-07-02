@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SKIPIO Transfer</title>
+    <title>Arc Token Transfer</title>
     <style>
       :root {
         color-scheme: light;
@@ -69,7 +69,8 @@
         color: #546171;
       }
 
-      input {
+      input,
+      select {
         width: 100%;
         min-height: 42px;
         border: 1px solid #cbd3dc;
@@ -170,8 +171,8 @@
     <main>
       <header>
         <div>
-          <h1>SKIPIO Transfer</h1>
-          <p>Arc Testnet</p>
+          <h1>Arc Token Transfer</h1>
+          <p>Arc Testnet ERC20 transfer</p>
         </div>
         <button id="connect" class="secondary" type="button">Connect MetaMask</button>
       </header>
@@ -179,8 +180,16 @@
       <section class="panel">
         <div class="grid">
           <label>
-            SKIPIO contract
-            <input id="contract" readonly />
+            Token preset
+            <select id="tokenPreset">
+              <option value="ARCP" selected>ARCP / ProofToken</option>
+              <option value="SKIPIO">SKIPIO</option>
+              <option value="CUSTOM">Custom ERC20</option>
+            </select>
+          </label>
+          <label>
+            Token contract
+            <input id="contract" />
           </label>
           <label>
             Sender
@@ -192,7 +201,11 @@
           </label>
           <label>
             Amount
-            <input id="amount" inputmode="decimal" value="1" />
+            <input id="amount" inputmode="decimal" />
+          </label>
+          <label>
+            Token symbol
+            <input id="tokenSymbol" readonly value="-" />
           </label>
         </div>
       </section>
@@ -200,11 +213,11 @@
       <section class="panel">
         <div class="stats">
           <div class="stat">
-            <span>Your SKIPIO</span>
+            <span>Your token balance</span>
             <strong id="walletBalance">-</strong>
           </div>
           <div class="stat">
-            <span>Circle Wallet SKIPIO</span>
+            <span>Circle Wallet token balance</span>
             <strong id="circleBalance">-</strong>
           </div>
           <div class="stat">
@@ -216,7 +229,7 @@
 
       <section class="panel">
         <div class="actions">
-          <button id="send" type="button" disabled>Send SKIPIO</button>
+          <button id="send" type="button" disabled>Send Token</button>
           <button id="refresh" class="secondary" type="button" disabled>Refresh</button>
         </div>
         <p id="status"></p>
@@ -239,11 +252,22 @@
         rpcUrls: ["https://rpc.testnet.arc.network"],
         blockExplorerUrls: ["https://testnet.arcscan.app"],
       };
-      const SKIPIO = "0x724038D2B4c1EbE69DC8B29cc5d591C4caA21918";
       const CIRCLE_WALLET = "0x78131700be4a8f2d16eeb0cba3498d2e717f2cd3";
+      const TOKENS = {
+        ARCP: {
+          address: "0x7A30aad0AA76bF8D2C14B9Eef035C07EEFDcdA8f",
+          amount: "1",
+        },
+        SKIPIO: {
+          address: "0x724038D2B4c1EbE69DC8B29cc5d591C4caA21918",
+          amount: "1",
+        },
+      };
       const ABI = [
         "function balanceOf(address) view returns (uint256)",
         "function decimals() view returns (uint8)",
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
         "function transfer(address to, uint256 amount) returns (bool)",
       ];
 
@@ -251,10 +275,12 @@
         connect: document.querySelector("#connect"),
         send: document.querySelector("#send"),
         refresh: document.querySelector("#refresh"),
+        tokenPreset: document.querySelector("#tokenPreset"),
         contract: document.querySelector("#contract"),
         sender: document.querySelector("#sender"),
         recipient: document.querySelector("#recipient"),
         amount: document.querySelector("#amount"),
+        tokenSymbol: document.querySelector("#tokenSymbol"),
         walletBalance: document.querySelector("#walletBalance"),
         circleBalance: document.querySelector("#circleBalance"),
         nativeBalance: document.querySelector("#nativeBalance"),
@@ -266,15 +292,31 @@
         signer: null,
         address: null,
         decimals: 18,
+        symbol: "TOKEN",
       };
 
-      el.contract.value = SKIPIO;
+      function applyPreset() {
+        const preset = TOKENS[el.tokenPreset.value];
+        if (!preset) return;
+        el.contract.value = preset.address;
+        el.amount.value = preset.amount;
+      }
+
+      applyPreset();
       el.recipient.value = CIRCLE_WALLET;
 
       function setStatus(message, link) {
         el.status.innerHTML = link
           ? `${message} <a href="${link}" target="_blank" rel="noreferrer">${link}</a>`
           : message;
+      }
+
+      function tokenContract(runner) {
+        const address = el.contract.value.trim();
+        if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+          throw new Error("Token contract must be a valid EVM address.");
+        }
+        return new Contract(address, ABI, runner);
       }
 
       async function ensureArc() {
@@ -290,19 +332,30 @@
         });
       }
 
+      async function tokenMetadata(token) {
+        const [decimals, symbol] = await Promise.all([
+          token.decimals(),
+          token.symbol().catch(() => "TOKEN"),
+        ]);
+
+        state.decimals = Number(decimals);
+        state.symbol = symbol;
+        el.tokenSymbol.value = symbol;
+      }
+
       async function refreshBalances() {
         if (!state.provider || !state.address) return;
-        const token = new Contract(SKIPIO, ABI, state.provider);
-        const [decimals, walletBalance, circleBalance, nativeBalance] = await Promise.all([
-          token.decimals(),
+        const token = tokenContract(state.provider);
+        await tokenMetadata(token);
+
+        const [walletBalance, circleBalance, nativeBalance] = await Promise.all([
           token.balanceOf(state.address),
           token.balanceOf(CIRCLE_WALLET),
           state.provider.getBalance(state.address),
         ]);
 
-        state.decimals = Number(decimals);
-        el.walletBalance.textContent = `${formatUnits(walletBalance, decimals)} SKIPIO`;
-        el.circleBalance.textContent = `${formatUnits(circleBalance, decimals)} SKIPIO`;
+        el.walletBalance.textContent = `${formatUnits(walletBalance, state.decimals)} ${state.symbol}`;
+        el.circleBalance.textContent = `${formatUnits(circleBalance, state.decimals)} ${state.symbol}`;
         el.nativeBalance.textContent = `${formatEther(nativeBalance)} USDC`;
       }
 
@@ -326,12 +379,13 @@
         setStatus("Ready.");
       }
 
-      async function sendSkipio() {
+      async function sendToken() {
         if (!state.signer) await connect();
 
         const recipient = el.recipient.value.trim();
         const amount = el.amount.value.trim();
-        const token = new Contract(SKIPIO, ABI, state.signer);
+        const token = tokenContract(state.signer);
+        await tokenMetadata(token);
         const value = parseUnits(amount, state.decimals);
 
         el.send.disabled = true;
@@ -351,9 +405,15 @@
         }
       }
 
+      el.tokenPreset.addEventListener("change", async () => {
+        applyPreset();
+        if (state.provider) {
+          await refreshBalances().catch((error) => setStatus(error?.message || "Refresh failed."));
+        }
+      });
       el.connect.addEventListener("click", connect);
       el.refresh.addEventListener("click", refreshBalances);
-      el.send.addEventListener("click", sendSkipio);
+      el.send.addEventListener("click", sendToken);
     </script>
   </body>
 </html>

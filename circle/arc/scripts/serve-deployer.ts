@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
+import { handleArcInvoiceApi } from "./arcinvoice-api.js";
+import "./weekly-cycle.js";
 
 const root = process.cwd();
 const port = Number(process.env.PORT ?? "4173");
@@ -15,7 +17,7 @@ const mimeTypes: Record<string, string> = {
 
 function resolvePath(urlPath: string): string {
   const safePath = decodeURIComponent(urlPath.split("?")[0] ?? "/").replace(/^\/+/, "");
-  let requested = safePath === "" ? "circle/arc/public/deploy-skipio.html" : safePath;
+  let requested = safePath === "" ? "circle/arc/public/arc-invoice.html" : safePath;
   if (requested.startsWith("public/")) {
     requested = path.join("circle", "arc", requested);
   }
@@ -64,6 +66,14 @@ async function proxyExternalApi(req: IncomingMessage, res: ServerResponse, prefi
 
 const server = createServer((req, res) => {
   try {
+    if ((req.url ?? "").startsWith("/api/arcinvoice")) {
+      void handleArcInvoiceApi(req, res).catch((error) => {
+        res.writeHead(500, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : "ArcInvoice API failed" }));
+      });
+      return;
+    }
+
     if ((req.url ?? "").startsWith("/circle-api/")) {
       void proxyExternalApi(req, res, "/circle-api", "https://api.circle.com").catch((error) => {
         res.writeHead(502, { "content-type": "application/json; charset=utf-8" });

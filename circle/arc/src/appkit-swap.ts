@@ -95,7 +95,7 @@ const el = {
   status: document.querySelector<HTMLElement>("#status")!,
 };
 
-el.amountIn.value = "1.00";
+el.amountIn.value = "0.01";
 
 function setStatus(message: string): void {
   el.status.textContent = message;

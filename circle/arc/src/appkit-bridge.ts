@@ -130,7 +130,7 @@ const el = {
 
 el.expectedAccount.value = USER_WALLET;
 el.recipient.value = USER_WALLET;
-el.amount.value = "2.00";
+el.amount.value = "0.1";
 
 function setStatus(message: string): void {
   el.status.textContent = message;
