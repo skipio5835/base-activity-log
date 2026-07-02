@@ -1,19 +1,15 @@
+var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
+var global = globalThis;
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
-var __commonJS = (cb, mod4) => function __require2() {
+var __commonJS = (cb, mod4) => function __require() {
   return mod4 || (0, cb[__getOwnPropNames(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
 };
 var __export = (target, all) => {
@@ -37,10 +33,1799 @@ var __toESM = (mod4, isNodeMode, target) => (target = mod4 != null ? __create(__
   mod4
 ));
 
+// node_modules/base64-js/index.js
+var require_base64_js = __commonJS({
+  "node_modules/base64-js/index.js"(exports) {
+    "use strict";
+    init_browser_buffer_global();
+    exports.byteLength = byteLength;
+    exports.toByteArray = toByteArray;
+    exports.fromByteArray = fromByteArray;
+    var lookup = [];
+    var revLookup = [];
+    var Arr = typeof Uint8Array !== "undefined" ? Uint8Array : Array;
+    var code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    for (i = 0, len = code.length; i < len; ++i) {
+      lookup[i] = code[i];
+      revLookup[code.charCodeAt(i)] = i;
+    }
+    var i;
+    var len;
+    revLookup["-".charCodeAt(0)] = 62;
+    revLookup["_".charCodeAt(0)] = 63;
+    function getLens(b64) {
+      var len2 = b64.length;
+      if (len2 % 4 > 0) {
+        throw new Error("Invalid string. Length must be a multiple of 4");
+      }
+      var validLen = b64.indexOf("=");
+      if (validLen === -1) validLen = len2;
+      var placeHoldersLen = validLen === len2 ? 0 : 4 - validLen % 4;
+      return [validLen, placeHoldersLen];
+    }
+    function byteLength(b64) {
+      var lens2 = getLens(b64);
+      var validLen = lens2[0];
+      var placeHoldersLen = lens2[1];
+      return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
+    }
+    function _byteLength(b64, validLen, placeHoldersLen) {
+      return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
+    }
+    function toByteArray(b64) {
+      var tmp;
+      var lens2 = getLens(b64);
+      var validLen = lens2[0];
+      var placeHoldersLen = lens2[1];
+      var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen));
+      var curByte = 0;
+      var len2 = placeHoldersLen > 0 ? validLen - 4 : validLen;
+      var i2;
+      for (i2 = 0; i2 < len2; i2 += 4) {
+        tmp = revLookup[b64.charCodeAt(i2)] << 18 | revLookup[b64.charCodeAt(i2 + 1)] << 12 | revLookup[b64.charCodeAt(i2 + 2)] << 6 | revLookup[b64.charCodeAt(i2 + 3)];
+        arr[curByte++] = tmp >> 16 & 255;
+        arr[curByte++] = tmp >> 8 & 255;
+        arr[curByte++] = tmp & 255;
+      }
+      if (placeHoldersLen === 2) {
+        tmp = revLookup[b64.charCodeAt(i2)] << 2 | revLookup[b64.charCodeAt(i2 + 1)] >> 4;
+        arr[curByte++] = tmp & 255;
+      }
+      if (placeHoldersLen === 1) {
+        tmp = revLookup[b64.charCodeAt(i2)] << 10 | revLookup[b64.charCodeAt(i2 + 1)] << 4 | revLookup[b64.charCodeAt(i2 + 2)] >> 2;
+        arr[curByte++] = tmp >> 8 & 255;
+        arr[curByte++] = tmp & 255;
+      }
+      return arr;
+    }
+    function tripletToBase64(num2) {
+      return lookup[num2 >> 18 & 63] + lookup[num2 >> 12 & 63] + lookup[num2 >> 6 & 63] + lookup[num2 & 63];
+    }
+    function encodeChunk(uint8, start, end) {
+      var tmp;
+      var output = [];
+      for (var i2 = start; i2 < end; i2 += 3) {
+        tmp = (uint8[i2] << 16 & 16711680) + (uint8[i2 + 1] << 8 & 65280) + (uint8[i2 + 2] & 255);
+        output.push(tripletToBase64(tmp));
+      }
+      return output.join("");
+    }
+    function fromByteArray(uint8) {
+      var tmp;
+      var len2 = uint8.length;
+      var extraBytes = len2 % 3;
+      var parts = [];
+      var maxChunkLength = 16383;
+      for (var i2 = 0, len22 = len2 - extraBytes; i2 < len22; i2 += maxChunkLength) {
+        parts.push(encodeChunk(uint8, i2, i2 + maxChunkLength > len22 ? len22 : i2 + maxChunkLength));
+      }
+      if (extraBytes === 1) {
+        tmp = uint8[len2 - 1];
+        parts.push(
+          lookup[tmp >> 2] + lookup[tmp << 4 & 63] + "=="
+        );
+      } else if (extraBytes === 2) {
+        tmp = (uint8[len2 - 2] << 8) + uint8[len2 - 1];
+        parts.push(
+          lookup[tmp >> 10] + lookup[tmp >> 4 & 63] + lookup[tmp << 2 & 63] + "="
+        );
+      }
+      return parts.join("");
+    }
+  }
+});
+
+// node_modules/ieee754/index.js
+var require_ieee754 = __commonJS({
+  "node_modules/ieee754/index.js"(exports) {
+    init_browser_buffer_global();
+    exports.read = function(buffer2, offset, isLE3, mLen, nBytes) {
+      var e, m;
+      var eLen = nBytes * 8 - mLen - 1;
+      var eMax = (1 << eLen) - 1;
+      var eBias = eMax >> 1;
+      var nBits = -7;
+      var i = isLE3 ? nBytes - 1 : 0;
+      var d = isLE3 ? -1 : 1;
+      var s = buffer2[offset + i];
+      i += d;
+      e = s & (1 << -nBits) - 1;
+      s >>= -nBits;
+      nBits += eLen;
+      for (; nBits > 0; e = e * 256 + buffer2[offset + i], i += d, nBits -= 8) {
+      }
+      m = e & (1 << -nBits) - 1;
+      e >>= -nBits;
+      nBits += mLen;
+      for (; nBits > 0; m = m * 256 + buffer2[offset + i], i += d, nBits -= 8) {
+      }
+      if (e === 0) {
+        e = 1 - eBias;
+      } else if (e === eMax) {
+        return m ? NaN : (s ? -1 : 1) * Infinity;
+      } else {
+        m = m + Math.pow(2, mLen);
+        e = e - eBias;
+      }
+      return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+    };
+    exports.write = function(buffer2, value, offset, isLE3, mLen, nBytes) {
+      var e, m, c;
+      var eLen = nBytes * 8 - mLen - 1;
+      var eMax = (1 << eLen) - 1;
+      var eBias = eMax >> 1;
+      var rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0;
+      var i = isLE3 ? 0 : nBytes - 1;
+      var d = isLE3 ? 1 : -1;
+      var s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+      value = Math.abs(value);
+      if (isNaN(value) || value === Infinity) {
+        m = isNaN(value) ? 1 : 0;
+        e = eMax;
+      } else {
+        e = Math.floor(Math.log(value) / Math.LN2);
+        if (value * (c = Math.pow(2, -e)) < 1) {
+          e--;
+          c *= 2;
+        }
+        if (e + eBias >= 1) {
+          value += rt / c;
+        } else {
+          value += rt * Math.pow(2, 1 - eBias);
+        }
+        if (value * c >= 2) {
+          e++;
+          c /= 2;
+        }
+        if (e + eBias >= eMax) {
+          m = 0;
+          e = eMax;
+        } else if (e + eBias >= 1) {
+          m = (value * c - 1) * Math.pow(2, mLen);
+          e = e + eBias;
+        } else {
+          m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+          e = 0;
+        }
+      }
+      for (; mLen >= 8; buffer2[offset + i] = m & 255, i += d, m /= 256, mLen -= 8) {
+      }
+      e = e << mLen | m;
+      eLen += mLen;
+      for (; eLen > 0; buffer2[offset + i] = e & 255, i += d, e /= 256, eLen -= 8) {
+      }
+      buffer2[offset + i - d] |= s * 128;
+    };
+  }
+});
+
+// node_modules/buffer/index.js
+var require_buffer = __commonJS({
+  "node_modules/buffer/index.js"(exports) {
+    "use strict";
+    init_browser_buffer_global();
+    var base64 = require_base64_js();
+    var ieee754 = require_ieee754();
+    var customInspectSymbol = typeof Symbol === "function" && typeof Symbol["for"] === "function" ? Symbol["for"]("nodejs.util.inspect.custom") : null;
+    exports.Buffer = Buffer3;
+    exports.SlowBuffer = SlowBuffer;
+    exports.INSPECT_MAX_BYTES = 50;
+    var K_MAX_LENGTH = 2147483647;
+    exports.kMaxLength = K_MAX_LENGTH;
+    Buffer3.TYPED_ARRAY_SUPPORT = typedArraySupport();
+    if (!Buffer3.TYPED_ARRAY_SUPPORT && typeof console !== "undefined" && typeof console.error === "function") {
+      console.error(
+        "This browser lacks typed array (Uint8Array) support which is required by `buffer` v5.x. Use `buffer` v4.x if you require old browser support."
+      );
+    }
+    function typedArraySupport() {
+      try {
+        const arr = new Uint8Array(1);
+        const proto = { foo: function() {
+          return 42;
+        } };
+        Object.setPrototypeOf(proto, Uint8Array.prototype);
+        Object.setPrototypeOf(arr, proto);
+        return arr.foo() === 42;
+      } catch (e) {
+        return false;
+      }
+    }
+    Object.defineProperty(Buffer3.prototype, "parent", {
+      enumerable: true,
+      get: function() {
+        if (!Buffer3.isBuffer(this)) return void 0;
+        return this.buffer;
+      }
+    });
+    Object.defineProperty(Buffer3.prototype, "offset", {
+      enumerable: true,
+      get: function() {
+        if (!Buffer3.isBuffer(this)) return void 0;
+        return this.byteOffset;
+      }
+    });
+    function createBuffer(length) {
+      if (length > K_MAX_LENGTH) {
+        throw new RangeError('The value "' + length + '" is invalid for option "size"');
+      }
+      const buf = new Uint8Array(length);
+      Object.setPrototypeOf(buf, Buffer3.prototype);
+      return buf;
+    }
+    function Buffer3(arg, encodingOrOffset, length) {
+      if (typeof arg === "number") {
+        if (typeof encodingOrOffset === "string") {
+          throw new TypeError(
+            'The "string" argument must be of type string. Received type number'
+          );
+        }
+        return allocUnsafe(arg);
+      }
+      return from20(arg, encodingOrOffset, length);
+    }
+    Buffer3.poolSize = 8192;
+    function from20(value, encodingOrOffset, length) {
+      if (typeof value === "string") {
+        return fromString3(value, encodingOrOffset);
+      }
+      if (ArrayBuffer.isView(value)) {
+        return fromArrayView(value);
+      }
+      if (value == null) {
+        throw new TypeError(
+          "The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value
+        );
+      }
+      if (isInstance(value, ArrayBuffer) || value && isInstance(value.buffer, ArrayBuffer)) {
+        return fromArrayBuffer(value, encodingOrOffset, length);
+      }
+      if (typeof SharedArrayBuffer !== "undefined" && (isInstance(value, SharedArrayBuffer) || value && isInstance(value.buffer, SharedArrayBuffer))) {
+        return fromArrayBuffer(value, encodingOrOffset, length);
+      }
+      if (typeof value === "number") {
+        throw new TypeError(
+          'The "value" argument must not be of type number. Received type number'
+        );
+      }
+      const valueOf = value.valueOf && value.valueOf();
+      if (valueOf != null && valueOf !== value) {
+        return Buffer3.from(valueOf, encodingOrOffset, length);
+      }
+      const b = fromObject(value);
+      if (b) return b;
+      if (typeof Symbol !== "undefined" && Symbol.toPrimitive != null && typeof value[Symbol.toPrimitive] === "function") {
+        return Buffer3.from(value[Symbol.toPrimitive]("string"), encodingOrOffset, length);
+      }
+      throw new TypeError(
+        "The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value
+      );
+    }
+    Buffer3.from = function(value, encodingOrOffset, length) {
+      return from20(value, encodingOrOffset, length);
+    };
+    Object.setPrototypeOf(Buffer3.prototype, Uint8Array.prototype);
+    Object.setPrototypeOf(Buffer3, Uint8Array);
+    function assertSize4(size5) {
+      if (typeof size5 !== "number") {
+        throw new TypeError('"size" argument must be of type number');
+      } else if (size5 < 0) {
+        throw new RangeError('The value "' + size5 + '" is invalid for option "size"');
+      }
+    }
+    function alloc(size5, fill, encoding) {
+      assertSize4(size5);
+      if (size5 <= 0) {
+        return createBuffer(size5);
+      }
+      if (fill !== void 0) {
+        return typeof encoding === "string" ? createBuffer(size5).fill(fill, encoding) : createBuffer(size5).fill(fill);
+      }
+      return createBuffer(size5);
+    }
+    Buffer3.alloc = function(size5, fill, encoding) {
+      return alloc(size5, fill, encoding);
+    };
+    function allocUnsafe(size5) {
+      assertSize4(size5);
+      return createBuffer(size5 < 0 ? 0 : checked(size5) | 0);
+    }
+    Buffer3.allocUnsafe = function(size5) {
+      return allocUnsafe(size5);
+    };
+    Buffer3.allocUnsafeSlow = function(size5) {
+      return allocUnsafe(size5);
+    };
+    function fromString3(string, encoding) {
+      if (typeof encoding !== "string" || encoding === "") {
+        encoding = "utf8";
+      }
+      if (!Buffer3.isEncoding(encoding)) {
+        throw new TypeError("Unknown encoding: " + encoding);
+      }
+      const length = byteLength(string, encoding) | 0;
+      let buf = createBuffer(length);
+      const actual = buf.write(string, encoding);
+      if (actual !== length) {
+        buf = buf.slice(0, actual);
+      }
+      return buf;
+    }
+    function fromArrayLike(array) {
+      const length = array.length < 0 ? 0 : checked(array.length) | 0;
+      const buf = createBuffer(length);
+      for (let i = 0; i < length; i += 1) {
+        buf[i] = array[i] & 255;
+      }
+      return buf;
+    }
+    function fromArrayView(arrayView) {
+      if (isInstance(arrayView, Uint8Array)) {
+        const copy = new Uint8Array(arrayView);
+        return fromArrayBuffer(copy.buffer, copy.byteOffset, copy.byteLength);
+      }
+      return fromArrayLike(arrayView);
+    }
+    function fromArrayBuffer(array, byteOffset, length) {
+      if (byteOffset < 0 || array.byteLength < byteOffset) {
+        throw new RangeError('"offset" is outside of buffer bounds');
+      }
+      if (array.byteLength < byteOffset + (length || 0)) {
+        throw new RangeError('"length" is outside of buffer bounds');
+      }
+      let buf;
+      if (byteOffset === void 0 && length === void 0) {
+        buf = new Uint8Array(array);
+      } else if (length === void 0) {
+        buf = new Uint8Array(array, byteOffset);
+      } else {
+        buf = new Uint8Array(array, byteOffset, length);
+      }
+      Object.setPrototypeOf(buf, Buffer3.prototype);
+      return buf;
+    }
+    function fromObject(obj) {
+      if (Buffer3.isBuffer(obj)) {
+        const len = checked(obj.length) | 0;
+        const buf = createBuffer(len);
+        if (buf.length === 0) {
+          return buf;
+        }
+        obj.copy(buf, 0, 0, len);
+        return buf;
+      }
+      if (obj.length !== void 0) {
+        if (typeof obj.length !== "number" || numberIsNaN(obj.length)) {
+          return createBuffer(0);
+        }
+        return fromArrayLike(obj);
+      }
+      if (obj.type === "Buffer" && Array.isArray(obj.data)) {
+        return fromArrayLike(obj.data);
+      }
+    }
+    function checked(length) {
+      if (length >= K_MAX_LENGTH) {
+        throw new RangeError("Attempt to allocate Buffer larger than maximum size: 0x" + K_MAX_LENGTH.toString(16) + " bytes");
+      }
+      return length | 0;
+    }
+    function SlowBuffer(length) {
+      if (+length != length) {
+        length = 0;
+      }
+      return Buffer3.alloc(+length);
+    }
+    Buffer3.isBuffer = function isBuffer(b) {
+      return b != null && b._isBuffer === true && b !== Buffer3.prototype;
+    };
+    Buffer3.compare = function compare(a, b) {
+      if (isInstance(a, Uint8Array)) a = Buffer3.from(a, a.offset, a.byteLength);
+      if (isInstance(b, Uint8Array)) b = Buffer3.from(b, b.offset, b.byteLength);
+      if (!Buffer3.isBuffer(a) || !Buffer3.isBuffer(b)) {
+        throw new TypeError(
+          'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
+        );
+      }
+      if (a === b) return 0;
+      let x = a.length;
+      let y = b.length;
+      for (let i = 0, len = Math.min(x, y); i < len; ++i) {
+        if (a[i] !== b[i]) {
+          x = a[i];
+          y = b[i];
+          break;
+        }
+      }
+      if (x < y) return -1;
+      if (y < x) return 1;
+      return 0;
+    };
+    Buffer3.isEncoding = function isEncoding(encoding) {
+      switch (String(encoding).toLowerCase()) {
+        case "hex":
+        case "utf8":
+        case "utf-8":
+        case "ascii":
+        case "latin1":
+        case "binary":
+        case "base64":
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+          return true;
+        default:
+          return false;
+      }
+    };
+    Buffer3.concat = function concat5(list, length) {
+      if (!Array.isArray(list)) {
+        throw new TypeError('"list" argument must be an Array of Buffers');
+      }
+      if (list.length === 0) {
+        return Buffer3.alloc(0);
+      }
+      let i;
+      if (length === void 0) {
+        length = 0;
+        for (i = 0; i < list.length; ++i) {
+          length += list[i].length;
+        }
+      }
+      const buffer2 = Buffer3.allocUnsafe(length);
+      let pos = 0;
+      for (i = 0; i < list.length; ++i) {
+        let buf = list[i];
+        if (isInstance(buf, Uint8Array)) {
+          if (pos + buf.length > buffer2.length) {
+            if (!Buffer3.isBuffer(buf)) buf = Buffer3.from(buf);
+            buf.copy(buffer2, pos);
+          } else {
+            Uint8Array.prototype.set.call(
+              buffer2,
+              buf,
+              pos
+            );
+          }
+        } else if (!Buffer3.isBuffer(buf)) {
+          throw new TypeError('"list" argument must be an Array of Buffers');
+        } else {
+          buf.copy(buffer2, pos);
+        }
+        pos += buf.length;
+      }
+      return buffer2;
+    };
+    function byteLength(string, encoding) {
+      if (Buffer3.isBuffer(string)) {
+        return string.length;
+      }
+      if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) {
+        return string.byteLength;
+      }
+      if (typeof string !== "string") {
+        throw new TypeError(
+          'The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof string
+        );
+      }
+      const len = string.length;
+      const mustMatch = arguments.length > 2 && arguments[2] === true;
+      if (!mustMatch && len === 0) return 0;
+      let loweredCase = false;
+      for (; ; ) {
+        switch (encoding) {
+          case "ascii":
+          case "latin1":
+          case "binary":
+            return len;
+          case "utf8":
+          case "utf-8":
+            return utf8ToBytes7(string).length;
+          case "ucs2":
+          case "ucs-2":
+          case "utf16le":
+          case "utf-16le":
+            return len * 2;
+          case "hex":
+            return len >>> 1;
+          case "base64":
+            return base64ToBytes(string).length;
+          default:
+            if (loweredCase) {
+              return mustMatch ? -1 : utf8ToBytes7(string).length;
+            }
+            encoding = ("" + encoding).toLowerCase();
+            loweredCase = true;
+        }
+      }
+    }
+    Buffer3.byteLength = byteLength;
+    function slowToString(encoding, start, end) {
+      let loweredCase = false;
+      if (start === void 0 || start < 0) {
+        start = 0;
+      }
+      if (start > this.length) {
+        return "";
+      }
+      if (end === void 0 || end > this.length) {
+        end = this.length;
+      }
+      if (end <= 0) {
+        return "";
+      }
+      end >>>= 0;
+      start >>>= 0;
+      if (end <= start) {
+        return "";
+      }
+      if (!encoding) encoding = "utf8";
+      while (true) {
+        switch (encoding) {
+          case "hex":
+            return hexSlice(this, start, end);
+          case "utf8":
+          case "utf-8":
+            return utf8Slice(this, start, end);
+          case "ascii":
+            return asciiSlice(this, start, end);
+          case "latin1":
+          case "binary":
+            return latin1Slice(this, start, end);
+          case "base64":
+            return base64Slice(this, start, end);
+          case "ucs2":
+          case "ucs-2":
+          case "utf16le":
+          case "utf-16le":
+            return utf16leSlice(this, start, end);
+          default:
+            if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+            encoding = (encoding + "").toLowerCase();
+            loweredCase = true;
+        }
+      }
+    }
+    Buffer3.prototype._isBuffer = true;
+    function swap(b, n, m) {
+      const i = b[n];
+      b[n] = b[m];
+      b[m] = i;
+    }
+    Buffer3.prototype.swap16 = function swap16() {
+      const len = this.length;
+      if (len % 2 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 16-bits");
+      }
+      for (let i = 0; i < len; i += 2) {
+        swap(this, i, i + 1);
+      }
+      return this;
+    };
+    Buffer3.prototype.swap32 = function swap32() {
+      const len = this.length;
+      if (len % 4 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 32-bits");
+      }
+      for (let i = 0; i < len; i += 4) {
+        swap(this, i, i + 3);
+        swap(this, i + 1, i + 2);
+      }
+      return this;
+    };
+    Buffer3.prototype.swap64 = function swap64() {
+      const len = this.length;
+      if (len % 8 !== 0) {
+        throw new RangeError("Buffer size must be a multiple of 64-bits");
+      }
+      for (let i = 0; i < len; i += 8) {
+        swap(this, i, i + 7);
+        swap(this, i + 1, i + 6);
+        swap(this, i + 2, i + 5);
+        swap(this, i + 3, i + 4);
+      }
+      return this;
+    };
+    Buffer3.prototype.toString = function toString3() {
+      const length = this.length;
+      if (length === 0) return "";
+      if (arguments.length === 0) return utf8Slice(this, 0, length);
+      return slowToString.apply(this, arguments);
+    };
+    Buffer3.prototype.toLocaleString = Buffer3.prototype.toString;
+    Buffer3.prototype.equals = function equals(b) {
+      if (!Buffer3.isBuffer(b)) throw new TypeError("Argument must be a Buffer");
+      if (this === b) return true;
+      return Buffer3.compare(this, b) === 0;
+    };
+    Buffer3.prototype.inspect = function inspect() {
+      let str = "";
+      const max = exports.INSPECT_MAX_BYTES;
+      str = this.toString("hex", 0, max).replace(/(.{2})/g, "$1 ").trim();
+      if (this.length > max) str += " ... ";
+      return "<Buffer " + str + ">";
+    };
+    if (customInspectSymbol) {
+      Buffer3.prototype[customInspectSymbol] = Buffer3.prototype.inspect;
+    }
+    Buffer3.prototype.compare = function compare(target, start, end, thisStart, thisEnd) {
+      if (isInstance(target, Uint8Array)) {
+        target = Buffer3.from(target, target.offset, target.byteLength);
+      }
+      if (!Buffer3.isBuffer(target)) {
+        throw new TypeError(
+          'The "target" argument must be one of type Buffer or Uint8Array. Received type ' + typeof target
+        );
+      }
+      if (start === void 0) {
+        start = 0;
+      }
+      if (end === void 0) {
+        end = target ? target.length : 0;
+      }
+      if (thisStart === void 0) {
+        thisStart = 0;
+      }
+      if (thisEnd === void 0) {
+        thisEnd = this.length;
+      }
+      if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+        throw new RangeError("out of range index");
+      }
+      if (thisStart >= thisEnd && start >= end) {
+        return 0;
+      }
+      if (thisStart >= thisEnd) {
+        return -1;
+      }
+      if (start >= end) {
+        return 1;
+      }
+      start >>>= 0;
+      end >>>= 0;
+      thisStart >>>= 0;
+      thisEnd >>>= 0;
+      if (this === target) return 0;
+      let x = thisEnd - thisStart;
+      let y = end - start;
+      const len = Math.min(x, y);
+      const thisCopy = this.slice(thisStart, thisEnd);
+      const targetCopy = target.slice(start, end);
+      for (let i = 0; i < len; ++i) {
+        if (thisCopy[i] !== targetCopy[i]) {
+          x = thisCopy[i];
+          y = targetCopy[i];
+          break;
+        }
+      }
+      if (x < y) return -1;
+      if (y < x) return 1;
+      return 0;
+    };
+    function bidirectionalIndexOf(buffer2, val, byteOffset, encoding, dir) {
+      if (buffer2.length === 0) return -1;
+      if (typeof byteOffset === "string") {
+        encoding = byteOffset;
+        byteOffset = 0;
+      } else if (byteOffset > 2147483647) {
+        byteOffset = 2147483647;
+      } else if (byteOffset < -2147483648) {
+        byteOffset = -2147483648;
+      }
+      byteOffset = +byteOffset;
+      if (numberIsNaN(byteOffset)) {
+        byteOffset = dir ? 0 : buffer2.length - 1;
+      }
+      if (byteOffset < 0) byteOffset = buffer2.length + byteOffset;
+      if (byteOffset >= buffer2.length) {
+        if (dir) return -1;
+        else byteOffset = buffer2.length - 1;
+      } else if (byteOffset < 0) {
+        if (dir) byteOffset = 0;
+        else return -1;
+      }
+      if (typeof val === "string") {
+        val = Buffer3.from(val, encoding);
+      }
+      if (Buffer3.isBuffer(val)) {
+        if (val.length === 0) {
+          return -1;
+        }
+        return arrayIndexOf(buffer2, val, byteOffset, encoding, dir);
+      } else if (typeof val === "number") {
+        val = val & 255;
+        if (typeof Uint8Array.prototype.indexOf === "function") {
+          if (dir) {
+            return Uint8Array.prototype.indexOf.call(buffer2, val, byteOffset);
+          } else {
+            return Uint8Array.prototype.lastIndexOf.call(buffer2, val, byteOffset);
+          }
+        }
+        return arrayIndexOf(buffer2, [val], byteOffset, encoding, dir);
+      }
+      throw new TypeError("val must be string, number or Buffer");
+    }
+    function arrayIndexOf(arr, val, byteOffset, encoding, dir) {
+      let indexSize = 1;
+      let arrLength = arr.length;
+      let valLength = val.length;
+      if (encoding !== void 0) {
+        encoding = String(encoding).toLowerCase();
+        if (encoding === "ucs2" || encoding === "ucs-2" || encoding === "utf16le" || encoding === "utf-16le") {
+          if (arr.length < 2 || val.length < 2) {
+            return -1;
+          }
+          indexSize = 2;
+          arrLength /= 2;
+          valLength /= 2;
+          byteOffset /= 2;
+        }
+      }
+      function read(buf, i2) {
+        if (indexSize === 1) {
+          return buf[i2];
+        } else {
+          return buf.readUInt16BE(i2 * indexSize);
+        }
+      }
+      let i;
+      if (dir) {
+        let foundIndex = -1;
+        for (i = byteOffset; i < arrLength; i++) {
+          if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+            if (foundIndex === -1) foundIndex = i;
+            if (i - foundIndex + 1 === valLength) return foundIndex * indexSize;
+          } else {
+            if (foundIndex !== -1) i -= i - foundIndex;
+            foundIndex = -1;
+          }
+        }
+      } else {
+        if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
+        for (i = byteOffset; i >= 0; i--) {
+          let found = true;
+          for (let j = 0; j < valLength; j++) {
+            if (read(arr, i + j) !== read(val, j)) {
+              found = false;
+              break;
+            }
+          }
+          if (found) return i;
+        }
+      }
+      return -1;
+    }
+    Buffer3.prototype.includes = function includes(val, byteOffset, encoding) {
+      return this.indexOf(val, byteOffset, encoding) !== -1;
+    };
+    Buffer3.prototype.indexOf = function indexOf(val, byteOffset, encoding) {
+      return bidirectionalIndexOf(this, val, byteOffset, encoding, true);
+    };
+    Buffer3.prototype.lastIndexOf = function lastIndexOf(val, byteOffset, encoding) {
+      return bidirectionalIndexOf(this, val, byteOffset, encoding, false);
+    };
+    function hexWrite(buf, string, offset, length) {
+      offset = Number(offset) || 0;
+      const remaining = buf.length - offset;
+      if (!length) {
+        length = remaining;
+      } else {
+        length = Number(length);
+        if (length > remaining) {
+          length = remaining;
+        }
+      }
+      const strLen = string.length;
+      if (length > strLen / 2) {
+        length = strLen / 2;
+      }
+      let i;
+      for (i = 0; i < length; ++i) {
+        const parsed = parseInt(string.substr(i * 2, 2), 16);
+        if (numberIsNaN(parsed)) return i;
+        buf[offset + i] = parsed;
+      }
+      return i;
+    }
+    function utf8Write(buf, string, offset, length) {
+      return blitBuffer(utf8ToBytes7(string, buf.length - offset), buf, offset, length);
+    }
+    function asciiWrite(buf, string, offset, length) {
+      return blitBuffer(asciiToBytes(string), buf, offset, length);
+    }
+    function base64Write(buf, string, offset, length) {
+      return blitBuffer(base64ToBytes(string), buf, offset, length);
+    }
+    function ucs2Write(buf, string, offset, length) {
+      return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length);
+    }
+    Buffer3.prototype.write = function write(string, offset, length, encoding) {
+      if (offset === void 0) {
+        encoding = "utf8";
+        length = this.length;
+        offset = 0;
+      } else if (length === void 0 && typeof offset === "string") {
+        encoding = offset;
+        length = this.length;
+        offset = 0;
+      } else if (isFinite(offset)) {
+        offset = offset >>> 0;
+        if (isFinite(length)) {
+          length = length >>> 0;
+          if (encoding === void 0) encoding = "utf8";
+        } else {
+          encoding = length;
+          length = void 0;
+        }
+      } else {
+        throw new Error(
+          "Buffer.write(string, encoding, offset[, length]) is no longer supported"
+        );
+      }
+      const remaining = this.length - offset;
+      if (length === void 0 || length > remaining) length = remaining;
+      if (string.length > 0 && (length < 0 || offset < 0) || offset > this.length) {
+        throw new RangeError("Attempt to write outside buffer bounds");
+      }
+      if (!encoding) encoding = "utf8";
+      let loweredCase = false;
+      for (; ; ) {
+        switch (encoding) {
+          case "hex":
+            return hexWrite(this, string, offset, length);
+          case "utf8":
+          case "utf-8":
+            return utf8Write(this, string, offset, length);
+          case "ascii":
+          case "latin1":
+          case "binary":
+            return asciiWrite(this, string, offset, length);
+          case "base64":
+            return base64Write(this, string, offset, length);
+          case "ucs2":
+          case "ucs-2":
+          case "utf16le":
+          case "utf-16le":
+            return ucs2Write(this, string, offset, length);
+          default:
+            if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+            encoding = ("" + encoding).toLowerCase();
+            loweredCase = true;
+        }
+      }
+    };
+    Buffer3.prototype.toJSON = function toJSON() {
+      return {
+        type: "Buffer",
+        data: Array.prototype.slice.call(this._arr || this, 0)
+      };
+    };
+    function base64Slice(buf, start, end) {
+      if (start === 0 && end === buf.length) {
+        return base64.fromByteArray(buf);
+      } else {
+        return base64.fromByteArray(buf.slice(start, end));
+      }
+    }
+    function utf8Slice(buf, start, end) {
+      end = Math.min(buf.length, end);
+      const res = [];
+      let i = start;
+      while (i < end) {
+        const firstByte = buf[i];
+        let codePoint = null;
+        let bytesPerSequence = firstByte > 239 ? 4 : firstByte > 223 ? 3 : firstByte > 191 ? 2 : 1;
+        if (i + bytesPerSequence <= end) {
+          let secondByte, thirdByte, fourthByte, tempCodePoint;
+          switch (bytesPerSequence) {
+            case 1:
+              if (firstByte < 128) {
+                codePoint = firstByte;
+              }
+              break;
+            case 2:
+              secondByte = buf[i + 1];
+              if ((secondByte & 192) === 128) {
+                tempCodePoint = (firstByte & 31) << 6 | secondByte & 63;
+                if (tempCodePoint > 127) {
+                  codePoint = tempCodePoint;
+                }
+              }
+              break;
+            case 3:
+              secondByte = buf[i + 1];
+              thirdByte = buf[i + 2];
+              if ((secondByte & 192) === 128 && (thirdByte & 192) === 128) {
+                tempCodePoint = (firstByte & 15) << 12 | (secondByte & 63) << 6 | thirdByte & 63;
+                if (tempCodePoint > 2047 && (tempCodePoint < 55296 || tempCodePoint > 57343)) {
+                  codePoint = tempCodePoint;
+                }
+              }
+              break;
+            case 4:
+              secondByte = buf[i + 1];
+              thirdByte = buf[i + 2];
+              fourthByte = buf[i + 3];
+              if ((secondByte & 192) === 128 && (thirdByte & 192) === 128 && (fourthByte & 192) === 128) {
+                tempCodePoint = (firstByte & 15) << 18 | (secondByte & 63) << 12 | (thirdByte & 63) << 6 | fourthByte & 63;
+                if (tempCodePoint > 65535 && tempCodePoint < 1114112) {
+                  codePoint = tempCodePoint;
+                }
+              }
+          }
+        }
+        if (codePoint === null) {
+          codePoint = 65533;
+          bytesPerSequence = 1;
+        } else if (codePoint > 65535) {
+          codePoint -= 65536;
+          res.push(codePoint >>> 10 & 1023 | 55296);
+          codePoint = 56320 | codePoint & 1023;
+        }
+        res.push(codePoint);
+        i += bytesPerSequence;
+      }
+      return decodeCodePointsArray(res);
+    }
+    var MAX_ARGUMENTS_LENGTH = 4096;
+    function decodeCodePointsArray(codePoints) {
+      const len = codePoints.length;
+      if (len <= MAX_ARGUMENTS_LENGTH) {
+        return String.fromCharCode.apply(String, codePoints);
+      }
+      let res = "";
+      let i = 0;
+      while (i < len) {
+        res += String.fromCharCode.apply(
+          String,
+          codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+        );
+      }
+      return res;
+    }
+    function asciiSlice(buf, start, end) {
+      let ret = "";
+      end = Math.min(buf.length, end);
+      for (let i = start; i < end; ++i) {
+        ret += String.fromCharCode(buf[i] & 127);
+      }
+      return ret;
+    }
+    function latin1Slice(buf, start, end) {
+      let ret = "";
+      end = Math.min(buf.length, end);
+      for (let i = start; i < end; ++i) {
+        ret += String.fromCharCode(buf[i]);
+      }
+      return ret;
+    }
+    function hexSlice(buf, start, end) {
+      const len = buf.length;
+      if (!start || start < 0) start = 0;
+      if (!end || end < 0 || end > len) end = len;
+      let out = "";
+      for (let i = start; i < end; ++i) {
+        out += hexSliceLookupTable[buf[i]];
+      }
+      return out;
+    }
+    function utf16leSlice(buf, start, end) {
+      const bytes = buf.slice(start, end);
+      let res = "";
+      for (let i = 0; i < bytes.length - 1; i += 2) {
+        res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
+      }
+      return res;
+    }
+    Buffer3.prototype.slice = function slice4(start, end) {
+      const len = this.length;
+      start = ~~start;
+      end = end === void 0 ? len : ~~end;
+      if (start < 0) {
+        start += len;
+        if (start < 0) start = 0;
+      } else if (start > len) {
+        start = len;
+      }
+      if (end < 0) {
+        end += len;
+        if (end < 0) end = 0;
+      } else if (end > len) {
+        end = len;
+      }
+      if (end < start) end = start;
+      const newBuf = this.subarray(start, end);
+      Object.setPrototypeOf(newBuf, Buffer3.prototype);
+      return newBuf;
+    };
+    function checkOffset(offset, ext, length) {
+      if (offset % 1 !== 0 || offset < 0) throw new RangeError("offset is not uint");
+      if (offset + ext > length) throw new RangeError("Trying to access beyond buffer length");
+    }
+    Buffer3.prototype.readUintLE = Buffer3.prototype.readUIntLE = function readUIntLE(offset, byteLength2, noAssert) {
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      let val = this[offset];
+      let mul = 1;
+      let i = 0;
+      while (++i < byteLength2 && (mul *= 256)) {
+        val += this[offset + i] * mul;
+      }
+      return val;
+    };
+    Buffer3.prototype.readUintBE = Buffer3.prototype.readUIntBE = function readUIntBE(offset, byteLength2, noAssert) {
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) {
+        checkOffset(offset, byteLength2, this.length);
+      }
+      let val = this[offset + --byteLength2];
+      let mul = 1;
+      while (byteLength2 > 0 && (mul *= 256)) {
+        val += this[offset + --byteLength2] * mul;
+      }
+      return val;
+    };
+    Buffer3.prototype.readUint8 = Buffer3.prototype.readUInt8 = function readUInt8(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 1, this.length);
+      return this[offset];
+    };
+    Buffer3.prototype.readUint16LE = Buffer3.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      return this[offset] | this[offset + 1] << 8;
+    };
+    Buffer3.prototype.readUint16BE = Buffer3.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      return this[offset] << 8 | this[offset + 1];
+    };
+    Buffer3.prototype.readUint32LE = Buffer3.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 16777216;
+    };
+    Buffer3.prototype.readUint32BE = Buffer3.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] * 16777216 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
+    };
+    Buffer3.prototype.readBigUInt64LE = defineBigIntMethod(function readBigUInt64LE(offset) {
+      offset = offset >>> 0;
+      validateNumber(offset, "offset");
+      const first = this[offset];
+      const last = this[offset + 7];
+      if (first === void 0 || last === void 0) {
+        boundsError(offset, this.length - 8);
+      }
+      const lo = first + this[++offset] * 2 ** 8 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 24;
+      const hi = this[++offset] + this[++offset] * 2 ** 8 + this[++offset] * 2 ** 16 + last * 2 ** 24;
+      return BigInt(lo) + (BigInt(hi) << BigInt(32));
+    });
+    Buffer3.prototype.readBigUInt64BE = defineBigIntMethod(function readBigUInt64BE(offset) {
+      offset = offset >>> 0;
+      validateNumber(offset, "offset");
+      const first = this[offset];
+      const last = this[offset + 7];
+      if (first === void 0 || last === void 0) {
+        boundsError(offset, this.length - 8);
+      }
+      const hi = first * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 8 + this[++offset];
+      const lo = this[++offset] * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 8 + last;
+      return (BigInt(hi) << BigInt(32)) + BigInt(lo);
+    });
+    Buffer3.prototype.readIntLE = function readIntLE(offset, byteLength2, noAssert) {
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      let val = this[offset];
+      let mul = 1;
+      let i = 0;
+      while (++i < byteLength2 && (mul *= 256)) {
+        val += this[offset + i] * mul;
+      }
+      mul *= 128;
+      if (val >= mul) val -= Math.pow(2, 8 * byteLength2);
+      return val;
+    };
+    Buffer3.prototype.readIntBE = function readIntBE(offset, byteLength2, noAssert) {
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) checkOffset(offset, byteLength2, this.length);
+      let i = byteLength2;
+      let mul = 1;
+      let val = this[offset + --i];
+      while (i > 0 && (mul *= 256)) {
+        val += this[offset + --i] * mul;
+      }
+      mul *= 128;
+      if (val >= mul) val -= Math.pow(2, 8 * byteLength2);
+      return val;
+    };
+    Buffer3.prototype.readInt8 = function readInt8(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 1, this.length);
+      if (!(this[offset] & 128)) return this[offset];
+      return (255 - this[offset] + 1) * -1;
+    };
+    Buffer3.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      const val = this[offset] | this[offset + 1] << 8;
+      return val & 32768 ? val | 4294901760 : val;
+    };
+    Buffer3.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 2, this.length);
+      const val = this[offset + 1] | this[offset] << 8;
+      return val & 32768 ? val | 4294901760 : val;
+    };
+    Buffer3.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
+    };
+    Buffer3.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
+    };
+    Buffer3.prototype.readBigInt64LE = defineBigIntMethod(function readBigInt64LE(offset) {
+      offset = offset >>> 0;
+      validateNumber(offset, "offset");
+      const first = this[offset];
+      const last = this[offset + 7];
+      if (first === void 0 || last === void 0) {
+        boundsError(offset, this.length - 8);
+      }
+      const val = this[offset + 4] + this[offset + 5] * 2 ** 8 + this[offset + 6] * 2 ** 16 + (last << 24);
+      return (BigInt(val) << BigInt(32)) + BigInt(first + this[++offset] * 2 ** 8 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 24);
+    });
+    Buffer3.prototype.readBigInt64BE = defineBigIntMethod(function readBigInt64BE(offset) {
+      offset = offset >>> 0;
+      validateNumber(offset, "offset");
+      const first = this[offset];
+      const last = this[offset + 7];
+      if (first === void 0 || last === void 0) {
+        boundsError(offset, this.length - 8);
+      }
+      const val = (first << 24) + // Overflow
+      this[++offset] * 2 ** 16 + this[++offset] * 2 ** 8 + this[++offset];
+      return (BigInt(val) << BigInt(32)) + BigInt(this[++offset] * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 8 + last);
+    });
+    Buffer3.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return ieee754.read(this, offset, true, 23, 4);
+    };
+    Buffer3.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 4, this.length);
+      return ieee754.read(this, offset, false, 23, 4);
+    };
+    Buffer3.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 8, this.length);
+      return ieee754.read(this, offset, true, 52, 8);
+    };
+    Buffer3.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
+      offset = offset >>> 0;
+      if (!noAssert) checkOffset(offset, 8, this.length);
+      return ieee754.read(this, offset, false, 52, 8);
+    };
+    function checkInt(buf, value, offset, ext, max, min) {
+      if (!Buffer3.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance');
+      if (value > max || value < min) throw new RangeError('"value" argument is out of bounds');
+      if (offset + ext > buf.length) throw new RangeError("Index out of range");
+    }
+    Buffer3.prototype.writeUintLE = Buffer3.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) {
+        const maxBytes = Math.pow(2, 8 * byteLength2) - 1;
+        checkInt(this, value, offset, byteLength2, maxBytes, 0);
+      }
+      let mul = 1;
+      let i = 0;
+      this[offset] = value & 255;
+      while (++i < byteLength2 && (mul *= 256)) {
+        this[offset + i] = value / mul & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer3.prototype.writeUintBE = Buffer3.prototype.writeUIntBE = function writeUIntBE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      byteLength2 = byteLength2 >>> 0;
+      if (!noAssert) {
+        const maxBytes = Math.pow(2, 8 * byteLength2) - 1;
+        checkInt(this, value, offset, byteLength2, maxBytes, 0);
+      }
+      let i = byteLength2 - 1;
+      let mul = 1;
+      this[offset + i] = value & 255;
+      while (--i >= 0 && (mul *= 256)) {
+        this[offset + i] = value / mul & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer3.prototype.writeUint8 = Buffer3.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 1, 255, 0);
+      this[offset] = value & 255;
+      return offset + 1;
+    };
+    Buffer3.prototype.writeUint16LE = Buffer3.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 65535, 0);
+      this[offset] = value & 255;
+      this[offset + 1] = value >>> 8;
+      return offset + 2;
+    };
+    Buffer3.prototype.writeUint16BE = Buffer3.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 65535, 0);
+      this[offset] = value >>> 8;
+      this[offset + 1] = value & 255;
+      return offset + 2;
+    };
+    Buffer3.prototype.writeUint32LE = Buffer3.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 4294967295, 0);
+      this[offset + 3] = value >>> 24;
+      this[offset + 2] = value >>> 16;
+      this[offset + 1] = value >>> 8;
+      this[offset] = value & 255;
+      return offset + 4;
+    };
+    Buffer3.prototype.writeUint32BE = Buffer3.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 4294967295, 0);
+      this[offset] = value >>> 24;
+      this[offset + 1] = value >>> 16;
+      this[offset + 2] = value >>> 8;
+      this[offset + 3] = value & 255;
+      return offset + 4;
+    };
+    function wrtBigUInt64LE(buf, value, offset, min, max) {
+      checkIntBI(value, min, max, buf, offset, 7);
+      let lo = Number(value & BigInt(4294967295));
+      buf[offset++] = lo;
+      lo = lo >> 8;
+      buf[offset++] = lo;
+      lo = lo >> 8;
+      buf[offset++] = lo;
+      lo = lo >> 8;
+      buf[offset++] = lo;
+      let hi = Number(value >> BigInt(32) & BigInt(4294967295));
+      buf[offset++] = hi;
+      hi = hi >> 8;
+      buf[offset++] = hi;
+      hi = hi >> 8;
+      buf[offset++] = hi;
+      hi = hi >> 8;
+      buf[offset++] = hi;
+      return offset;
+    }
+    function wrtBigUInt64BE(buf, value, offset, min, max) {
+      checkIntBI(value, min, max, buf, offset, 7);
+      let lo = Number(value & BigInt(4294967295));
+      buf[offset + 7] = lo;
+      lo = lo >> 8;
+      buf[offset + 6] = lo;
+      lo = lo >> 8;
+      buf[offset + 5] = lo;
+      lo = lo >> 8;
+      buf[offset + 4] = lo;
+      let hi = Number(value >> BigInt(32) & BigInt(4294967295));
+      buf[offset + 3] = hi;
+      hi = hi >> 8;
+      buf[offset + 2] = hi;
+      hi = hi >> 8;
+      buf[offset + 1] = hi;
+      hi = hi >> 8;
+      buf[offset] = hi;
+      return offset + 8;
+    }
+    Buffer3.prototype.writeBigUInt64LE = defineBigIntMethod(function writeBigUInt64LE(value, offset = 0) {
+      return wrtBigUInt64LE(this, value, offset, BigInt(0), BigInt("0xffffffffffffffff"));
+    });
+    Buffer3.prototype.writeBigUInt64BE = defineBigIntMethod(function writeBigUInt64BE(value, offset = 0) {
+      return wrtBigUInt64BE(this, value, offset, BigInt(0), BigInt("0xffffffffffffffff"));
+    });
+    Buffer3.prototype.writeIntLE = function writeIntLE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) {
+        const limit = Math.pow(2, 8 * byteLength2 - 1);
+        checkInt(this, value, offset, byteLength2, limit - 1, -limit);
+      }
+      let i = 0;
+      let mul = 1;
+      let sub = 0;
+      this[offset] = value & 255;
+      while (++i < byteLength2 && (mul *= 256)) {
+        if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+          sub = 1;
+        }
+        this[offset + i] = (value / mul >> 0) - sub & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer3.prototype.writeIntBE = function writeIntBE(value, offset, byteLength2, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) {
+        const limit = Math.pow(2, 8 * byteLength2 - 1);
+        checkInt(this, value, offset, byteLength2, limit - 1, -limit);
+      }
+      let i = byteLength2 - 1;
+      let mul = 1;
+      let sub = 0;
+      this[offset + i] = value & 255;
+      while (--i >= 0 && (mul *= 256)) {
+        if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+          sub = 1;
+        }
+        this[offset + i] = (value / mul >> 0) - sub & 255;
+      }
+      return offset + byteLength2;
+    };
+    Buffer3.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 1, 127, -128);
+      if (value < 0) value = 255 + value + 1;
+      this[offset] = value & 255;
+      return offset + 1;
+    };
+    Buffer3.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 32767, -32768);
+      this[offset] = value & 255;
+      this[offset + 1] = value >>> 8;
+      return offset + 2;
+    };
+    Buffer3.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 2, 32767, -32768);
+      this[offset] = value >>> 8;
+      this[offset + 1] = value & 255;
+      return offset + 2;
+    };
+    Buffer3.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 2147483647, -2147483648);
+      this[offset] = value & 255;
+      this[offset + 1] = value >>> 8;
+      this[offset + 2] = value >>> 16;
+      this[offset + 3] = value >>> 24;
+      return offset + 4;
+    };
+    Buffer3.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) checkInt(this, value, offset, 4, 2147483647, -2147483648);
+      if (value < 0) value = 4294967295 + value + 1;
+      this[offset] = value >>> 24;
+      this[offset + 1] = value >>> 16;
+      this[offset + 2] = value >>> 8;
+      this[offset + 3] = value & 255;
+      return offset + 4;
+    };
+    Buffer3.prototype.writeBigInt64LE = defineBigIntMethod(function writeBigInt64LE(value, offset = 0) {
+      return wrtBigUInt64LE(this, value, offset, -BigInt("0x8000000000000000"), BigInt("0x7fffffffffffffff"));
+    });
+    Buffer3.prototype.writeBigInt64BE = defineBigIntMethod(function writeBigInt64BE(value, offset = 0) {
+      return wrtBigUInt64BE(this, value, offset, -BigInt("0x8000000000000000"), BigInt("0x7fffffffffffffff"));
+    });
+    function checkIEEE754(buf, value, offset, ext, max, min) {
+      if (offset + ext > buf.length) throw new RangeError("Index out of range");
+      if (offset < 0) throw new RangeError("Index out of range");
+    }
+    function writeFloat(buf, value, offset, littleEndian, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) {
+        checkIEEE754(buf, value, offset, 4, 34028234663852886e22, -34028234663852886e22);
+      }
+      ieee754.write(buf, value, offset, littleEndian, 23, 4);
+      return offset + 4;
+    }
+    Buffer3.prototype.writeFloatLE = function writeFloatLE(value, offset, noAssert) {
+      return writeFloat(this, value, offset, true, noAssert);
+    };
+    Buffer3.prototype.writeFloatBE = function writeFloatBE(value, offset, noAssert) {
+      return writeFloat(this, value, offset, false, noAssert);
+    };
+    function writeDouble(buf, value, offset, littleEndian, noAssert) {
+      value = +value;
+      offset = offset >>> 0;
+      if (!noAssert) {
+        checkIEEE754(buf, value, offset, 8, 17976931348623157e292, -17976931348623157e292);
+      }
+      ieee754.write(buf, value, offset, littleEndian, 52, 8);
+      return offset + 8;
+    }
+    Buffer3.prototype.writeDoubleLE = function writeDoubleLE(value, offset, noAssert) {
+      return writeDouble(this, value, offset, true, noAssert);
+    };
+    Buffer3.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
+      return writeDouble(this, value, offset, false, noAssert);
+    };
+    Buffer3.prototype.copy = function copy(target, targetStart, start, end) {
+      if (!Buffer3.isBuffer(target)) throw new TypeError("argument should be a Buffer");
+      if (!start) start = 0;
+      if (!end && end !== 0) end = this.length;
+      if (targetStart >= target.length) targetStart = target.length;
+      if (!targetStart) targetStart = 0;
+      if (end > 0 && end < start) end = start;
+      if (end === start) return 0;
+      if (target.length === 0 || this.length === 0) return 0;
+      if (targetStart < 0) {
+        throw new RangeError("targetStart out of bounds");
+      }
+      if (start < 0 || start >= this.length) throw new RangeError("Index out of range");
+      if (end < 0) throw new RangeError("sourceEnd out of bounds");
+      if (end > this.length) end = this.length;
+      if (target.length - targetStart < end - start) {
+        end = target.length - targetStart + start;
+      }
+      const len = end - start;
+      if (this === target && typeof Uint8Array.prototype.copyWithin === "function") {
+        this.copyWithin(targetStart, start, end);
+      } else {
+        Uint8Array.prototype.set.call(
+          target,
+          this.subarray(start, end),
+          targetStart
+        );
+      }
+      return len;
+    };
+    Buffer3.prototype.fill = function fill(val, start, end, encoding) {
+      if (typeof val === "string") {
+        if (typeof start === "string") {
+          encoding = start;
+          start = 0;
+          end = this.length;
+        } else if (typeof end === "string") {
+          encoding = end;
+          end = this.length;
+        }
+        if (encoding !== void 0 && typeof encoding !== "string") {
+          throw new TypeError("encoding must be a string");
+        }
+        if (typeof encoding === "string" && !Buffer3.isEncoding(encoding)) {
+          throw new TypeError("Unknown encoding: " + encoding);
+        }
+        if (val.length === 1) {
+          const code = val.charCodeAt(0);
+          if (encoding === "utf8" && code < 128 || encoding === "latin1") {
+            val = code;
+          }
+        }
+      } else if (typeof val === "number") {
+        val = val & 255;
+      } else if (typeof val === "boolean") {
+        val = Number(val);
+      }
+      if (start < 0 || this.length < start || this.length < end) {
+        throw new RangeError("Out of range index");
+      }
+      if (end <= start) {
+        return this;
+      }
+      start = start >>> 0;
+      end = end === void 0 ? this.length : end >>> 0;
+      if (!val) val = 0;
+      let i;
+      if (typeof val === "number") {
+        for (i = start; i < end; ++i) {
+          this[i] = val;
+        }
+      } else {
+        const bytes = Buffer3.isBuffer(val) ? val : Buffer3.from(val, encoding);
+        const len = bytes.length;
+        if (len === 0) {
+          throw new TypeError('The value "' + val + '" is invalid for argument "value"');
+        }
+        for (i = 0; i < end - start; ++i) {
+          this[i + start] = bytes[i % len];
+        }
+      }
+      return this;
+    };
+    var errors = {};
+    function E(sym, getMessage, Base3) {
+      errors[sym] = class NodeError extends Base3 {
+        constructor() {
+          super();
+          Object.defineProperty(this, "message", {
+            value: getMessage.apply(this, arguments),
+            writable: true,
+            configurable: true
+          });
+          this.name = `${this.name} [${sym}]`;
+          this.stack;
+          delete this.name;
+        }
+        get code() {
+          return sym;
+        }
+        set code(value) {
+          Object.defineProperty(this, "code", {
+            configurable: true,
+            enumerable: true,
+            value,
+            writable: true
+          });
+        }
+        toString() {
+          return `${this.name} [${sym}]: ${this.message}`;
+        }
+      };
+    }
+    E(
+      "ERR_BUFFER_OUT_OF_BOUNDS",
+      function(name2) {
+        if (name2) {
+          return `${name2} is outside of buffer bounds`;
+        }
+        return "Attempt to access memory outside buffer bounds";
+      },
+      RangeError
+    );
+    E(
+      "ERR_INVALID_ARG_TYPE",
+      function(name2, actual) {
+        return `The "${name2}" argument must be of type number. Received type ${typeof actual}`;
+      },
+      TypeError
+    );
+    E(
+      "ERR_OUT_OF_RANGE",
+      function(str, range, input) {
+        let msg = `The value of "${str}" is out of range.`;
+        let received = input;
+        if (Number.isInteger(input) && Math.abs(input) > 2 ** 32) {
+          received = addNumericalSeparator(String(input));
+        } else if (typeof input === "bigint") {
+          received = String(input);
+          if (input > BigInt(2) ** BigInt(32) || input < -(BigInt(2) ** BigInt(32))) {
+            received = addNumericalSeparator(received);
+          }
+          received += "n";
+        }
+        msg += ` It must be ${range}. Received ${received}`;
+        return msg;
+      },
+      RangeError
+    );
+    function addNumericalSeparator(val) {
+      let res = "";
+      let i = val.length;
+      const start = val[0] === "-" ? 1 : 0;
+      for (; i >= start + 4; i -= 3) {
+        res = `_${val.slice(i - 3, i)}${res}`;
+      }
+      return `${val.slice(0, i)}${res}`;
+    }
+    function checkBounds(buf, offset, byteLength2) {
+      validateNumber(offset, "offset");
+      if (buf[offset] === void 0 || buf[offset + byteLength2] === void 0) {
+        boundsError(offset, buf.length - (byteLength2 + 1));
+      }
+    }
+    function checkIntBI(value, min, max, buf, offset, byteLength2) {
+      if (value > max || value < min) {
+        const n = typeof min === "bigint" ? "n" : "";
+        let range;
+        if (byteLength2 > 3) {
+          if (min === 0 || min === BigInt(0)) {
+            range = `>= 0${n} and < 2${n} ** ${(byteLength2 + 1) * 8}${n}`;
+          } else {
+            range = `>= -(2${n} ** ${(byteLength2 + 1) * 8 - 1}${n}) and < 2 ** ${(byteLength2 + 1) * 8 - 1}${n}`;
+          }
+        } else {
+          range = `>= ${min}${n} and <= ${max}${n}`;
+        }
+        throw new errors.ERR_OUT_OF_RANGE("value", range, value);
+      }
+      checkBounds(buf, offset, byteLength2);
+    }
+    function validateNumber(value, name2) {
+      if (typeof value !== "number") {
+        throw new errors.ERR_INVALID_ARG_TYPE(name2, "number", value);
+      }
+    }
+    function boundsError(value, length, type2) {
+      if (Math.floor(value) !== value) {
+        validateNumber(value, type2);
+        throw new errors.ERR_OUT_OF_RANGE(type2 || "offset", "an integer", value);
+      }
+      if (length < 0) {
+        throw new errors.ERR_BUFFER_OUT_OF_BOUNDS();
+      }
+      throw new errors.ERR_OUT_OF_RANGE(
+        type2 || "offset",
+        `>= ${type2 ? 1 : 0} and <= ${length}`,
+        value
+      );
+    }
+    var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g;
+    function base64clean(str) {
+      str = str.split("=")[0];
+      str = str.trim().replace(INVALID_BASE64_RE, "");
+      if (str.length < 2) return "";
+      while (str.length % 4 !== 0) {
+        str = str + "=";
+      }
+      return str;
+    }
+    function utf8ToBytes7(string, units) {
+      units = units || Infinity;
+      let codePoint;
+      const length = string.length;
+      let leadSurrogate = null;
+      const bytes = [];
+      for (let i = 0; i < length; ++i) {
+        codePoint = string.charCodeAt(i);
+        if (codePoint > 55295 && codePoint < 57344) {
+          if (!leadSurrogate) {
+            if (codePoint > 56319) {
+              if ((units -= 3) > -1) bytes.push(239, 191, 189);
+              continue;
+            } else if (i + 1 === length) {
+              if ((units -= 3) > -1) bytes.push(239, 191, 189);
+              continue;
+            }
+            leadSurrogate = codePoint;
+            continue;
+          }
+          if (codePoint < 56320) {
+            if ((units -= 3) > -1) bytes.push(239, 191, 189);
+            leadSurrogate = codePoint;
+            continue;
+          }
+          codePoint = (leadSurrogate - 55296 << 10 | codePoint - 56320) + 65536;
+        } else if (leadSurrogate) {
+          if ((units -= 3) > -1) bytes.push(239, 191, 189);
+        }
+        leadSurrogate = null;
+        if (codePoint < 128) {
+          if ((units -= 1) < 0) break;
+          bytes.push(codePoint);
+        } else if (codePoint < 2048) {
+          if ((units -= 2) < 0) break;
+          bytes.push(
+            codePoint >> 6 | 192,
+            codePoint & 63 | 128
+          );
+        } else if (codePoint < 65536) {
+          if ((units -= 3) < 0) break;
+          bytes.push(
+            codePoint >> 12 | 224,
+            codePoint >> 6 & 63 | 128,
+            codePoint & 63 | 128
+          );
+        } else if (codePoint < 1114112) {
+          if ((units -= 4) < 0) break;
+          bytes.push(
+            codePoint >> 18 | 240,
+            codePoint >> 12 & 63 | 128,
+            codePoint >> 6 & 63 | 128,
+            codePoint & 63 | 128
+          );
+        } else {
+          throw new Error("Invalid code point");
+        }
+      }
+      return bytes;
+    }
+    function asciiToBytes(str) {
+      const byteArray = [];
+      for (let i = 0; i < str.length; ++i) {
+        byteArray.push(str.charCodeAt(i) & 255);
+      }
+      return byteArray;
+    }
+    function utf16leToBytes(str, units) {
+      let c, hi, lo;
+      const byteArray = [];
+      for (let i = 0; i < str.length; ++i) {
+        if ((units -= 2) < 0) break;
+        c = str.charCodeAt(i);
+        hi = c >> 8;
+        lo = c % 256;
+        byteArray.push(lo);
+        byteArray.push(hi);
+      }
+      return byteArray;
+    }
+    function base64ToBytes(str) {
+      return base64.toByteArray(base64clean(str));
+    }
+    function blitBuffer(src, dst, offset, length) {
+      let i;
+      for (i = 0; i < length; ++i) {
+        if (i + offset >= dst.length || i >= src.length) break;
+        dst[i + offset] = src[i];
+      }
+      return i;
+    }
+    function isInstance(obj, type2) {
+      return obj instanceof type2 || obj != null && obj.constructor != null && obj.constructor.name != null && obj.constructor.name === type2.name;
+    }
+    function numberIsNaN(obj) {
+      return obj !== obj;
+    }
+    var hexSliceLookupTable = (function() {
+      const alphabet2 = "0123456789abcdef";
+      const table = new Array(256);
+      for (let i = 0; i < 16; ++i) {
+        const i16 = i * 16;
+        for (let j = 0; j < 16; ++j) {
+          table[i16 + j] = alphabet2[i] + alphabet2[j];
+        }
+      }
+      return table;
+    })();
+    function defineBigIntMethod(fn) {
+      return typeof BigInt === "undefined" ? BufferBigIntNotDefined : fn;
+    }
+    function BufferBigIntNotDefined() {
+      throw new Error("BigInt not supported");
+    }
+  }
+});
+
+// circle/arc/scripts/browser-buffer-global.js
+var import_buffer;
+var init_browser_buffer_global = __esm({
+  "circle/arc/scripts/browser-buffer-global.js"() {
+    import_buffer = __toESM(require_buffer());
+    globalThis.Buffer = globalThis.Buffer || import_buffer.Buffer;
+  }
+});
+
 // node_modules/viem/node_modules/abitype/dist/esm/version.js
 var version;
 var init_version = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/version.js"() {
+    init_browser_buffer_global();
     version = "1.2.3";
   }
 });
@@ -49,6 +1834,7 @@ var init_version = __esm({
 var BaseError;
 var init_errors = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/errors.js"() {
+    init_browser_buffer_global();
     init_version();
     BaseError = class _BaseError extends Error {
       constructor(shortMessage, args = {}) {
@@ -107,6 +1893,7 @@ var init_errors = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/narrow.js
 var init_narrow = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/narrow.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -118,6 +1905,7 @@ function execTyped(regex, string) {
 var bytesRegex, integerRegex, isTupleRegex;
 var init_regex = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/regex.js"() {
+    init_browser_buffer_global();
     bytesRegex = /^bytes([1-9]|1[0-9]|2[0-9]|3[0-2])?$/;
     integerRegex = /^u?int(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?$/;
     isTupleRegex = /^\(.+?\).*?$/;
@@ -152,6 +1940,7 @@ function formatAbiParameter(abiParameter) {
 var tupleRegex;
 var init_formatAbiParameter = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/formatAbiParameter.js"() {
+    init_browser_buffer_global();
     init_regex();
     tupleRegex = /^tuple(?<array>(\[(\d*)\])*)$/;
   }
@@ -171,6 +1960,7 @@ function formatAbiParameters(abiParameters) {
 }
 var init_formatAbiParameters = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/formatAbiParameters.js"() {
+    init_browser_buffer_global();
     init_formatAbiParameter();
   }
 });
@@ -191,6 +1981,7 @@ function formatAbiItem(abiItem) {
 }
 var init_formatAbiItem = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/formatAbiItem.js"() {
+    init_browser_buffer_global();
     init_formatAbiParameters();
   }
 });
@@ -198,6 +1989,7 @@ var init_formatAbiItem = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/human-readable/formatAbi.js
 var init_formatAbi = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/formatAbi.js"() {
+    init_browser_buffer_global();
     init_formatAbiItem();
   }
 });
@@ -245,6 +2037,7 @@ function isReceiveSignature(signature) {
 var errorSignatureRegex, eventSignatureRegex, functionSignatureRegex, structSignatureRegex, constructorSignatureRegex, fallbackSignatureRegex, receiveSignatureRegex, eventModifiers, functionModifiers;
 var init_signatures = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/runtime/signatures.js"() {
+    init_browser_buffer_global();
     init_regex();
     errorSignatureRegex = /^error (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)$/;
     eventSignatureRegex = /^event (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)$/;
@@ -266,6 +2059,7 @@ var init_signatures = __esm({
 var UnknownTypeError, UnknownSolidityTypeError;
 var init_abiItem = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/errors/abiItem.js"() {
+    init_browser_buffer_global();
     init_errors();
     UnknownTypeError = class extends BaseError {
       constructor({ type: type2 }) {
@@ -302,6 +2096,7 @@ var init_abiItem = __esm({
 var InvalidParameterError, SolidityProtectedKeywordError, InvalidModifierError, InvalidFunctionModifierError, InvalidAbiTypeParameterError;
 var init_abiParameter = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/errors/abiParameter.js"() {
+    init_browser_buffer_global();
     init_errors();
     InvalidParameterError = class extends BaseError {
       constructor({ param }) {
@@ -386,6 +2181,7 @@ var init_abiParameter = __esm({
 var InvalidSignatureError, UnknownSignatureError, InvalidStructSignatureError;
 var init_signature = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/errors/signature.js"() {
+    init_browser_buffer_global();
     init_errors();
     InvalidSignatureError = class extends BaseError {
       constructor({ signature, type: type2 }) {
@@ -434,6 +2230,7 @@ var init_signature = __esm({
 var CircularReferenceError;
 var init_struct = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/errors/struct.js"() {
+    init_browser_buffer_global();
     init_errors();
     CircularReferenceError = class extends BaseError {
       constructor({ type: type2 }) {
@@ -455,6 +2252,7 @@ var init_struct = __esm({
 var InvalidParenthesisError;
 var init_splitParameters = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/errors/splitParameters.js"() {
+    init_browser_buffer_global();
     init_errors();
     InvalidParenthesisError = class extends BaseError {
       constructor({ current, depth }) {
@@ -495,6 +2293,7 @@ function getParameterCacheKey(param, type2, structs) {
 var parameterCache;
 var init_cache = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/runtime/cache.js"() {
+    init_browser_buffer_global();
     parameterCache = /* @__PURE__ */ new Map([
       // Unnamed
       ["address", { type: "address" }],
@@ -749,6 +2548,7 @@ function isValidDataLocation(type2, isArray) {
 var abiParameterWithoutTupleRegex, abiParameterWithTupleRegex, dynamicIntegerRegex, protectedKeywordsRegex;
 var init_utils = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/runtime/utils.js"() {
+    init_browser_buffer_global();
     init_regex();
     init_abiItem();
     init_abiParameter();
@@ -834,6 +2634,7 @@ function resolveStructs(abiParameters = [], structs = {}, ancestors = /* @__PURE
 var typeWithoutTupleRegex;
 var init_structs = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/runtime/structs.js"() {
+    init_browser_buffer_global();
     init_regex();
     init_abiItem();
     init_abiParameter();
@@ -860,6 +2661,7 @@ function parseAbi(signatures) {
 }
 var init_parseAbi = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbi.js"() {
+    init_browser_buffer_global();
     init_signatures();
     init_structs();
     init_utils();
@@ -869,6 +2671,7 @@ var init_parseAbi = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiItem.js
 var init_parseAbiItem = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiItem.js"() {
+    init_browser_buffer_global();
     init_abiItem();
     init_signatures();
     init_structs();
@@ -879,6 +2682,7 @@ var init_parseAbiItem = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiParameter.js
 var init_parseAbiParameter = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiParameter.js"() {
+    init_browser_buffer_global();
     init_abiParameter();
     init_signatures();
     init_structs();
@@ -889,6 +2693,7 @@ var init_parseAbiParameter = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiParameters.js
 var init_parseAbiParameters = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/human-readable/parseAbiParameters.js"() {
+    init_browser_buffer_global();
     init_abiParameter();
     init_signatures();
     init_structs();
@@ -900,6 +2705,7 @@ var init_parseAbiParameters = __esm({
 // node_modules/viem/node_modules/abitype/dist/esm/exports/index.js
 var init_exports = __esm({
   "node_modules/viem/node_modules/abitype/dist/esm/exports/index.js"() {
+    init_browser_buffer_global();
     init_errors();
     init_narrow();
     init_formatAbi();
@@ -937,6 +2743,7 @@ function formatAbiParam(param, { includeName }) {
 }
 var init_formatAbiItem2 = __esm({
   "node_modules/viem/_esm/utils/abi/formatAbiItem.js"() {
+    init_browser_buffer_global();
     init_abi();
   }
 });
@@ -951,6 +2758,7 @@ function isHex(value, { strict = true } = {}) {
 }
 var init_isHex = __esm({
   "node_modules/viem/_esm/utils/data/isHex.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -962,6 +2770,7 @@ function size(value) {
 }
 var init_size = __esm({
   "node_modules/viem/_esm/utils/data/size.js"() {
+    init_browser_buffer_global();
     init_isHex();
   }
 });
@@ -970,6 +2779,7 @@ var init_size = __esm({
 var version2;
 var init_version2 = __esm({
   "node_modules/viem/_esm/errors/version.js"() {
+    init_browser_buffer_global();
     version2 = "2.52.2";
   }
 });
@@ -985,6 +2795,7 @@ function walk(err, fn) {
 var errorConfig, BaseError2;
 var init_base = __esm({
   "node_modules/viem/_esm/errors/base.js"() {
+    init_browser_buffer_global();
     init_version2();
     errorConfig = {
       getDocsUrl: ({ docsBaseUrl, docsPath: docsPath8 = "", docsSlug }) => docsPath8 ? `${docsBaseUrl ?? "https://viem.sh"}${docsPath8}${docsSlug ? `#${docsSlug}` : ""}` : void 0,
@@ -1068,6 +2879,7 @@ var init_base = __esm({
 var AbiConstructorNotFoundError, AbiConstructorParamsNotFoundError, AbiDecodingDataSizeTooSmallError, AbiDecodingZeroDataError, AbiEncodingArrayLengthMismatchError, AbiEncodingBytesSizeMismatchError, AbiEncodingLengthMismatchError, AbiErrorInputsNotFoundError, AbiErrorNotFoundError, AbiErrorSignatureNotFoundError, AbiEventSignatureEmptyTopicsError, AbiEventSignatureNotFoundError, AbiEventNotFoundError, AbiFunctionNotFoundError, AbiFunctionOutputsNotFoundError, AbiFunctionSignatureNotFoundError, AbiItemAmbiguityError, BytesSizeMismatchError, DecodeLogDataMismatch, DecodeLogTopicsMismatch, InvalidAbiEncodingTypeError, InvalidAbiDecodingTypeError, InvalidArrayError, InvalidDefinitionTypeError;
 var init_abi = __esm({
   "node_modules/viem/_esm/errors/abi.js"() {
+    init_browser_buffer_global();
     init_formatAbiItem2();
     init_size();
     init_base();
@@ -1379,6 +3191,7 @@ var init_abi = __esm({
 var SliceOffsetOutOfBoundsError, SizeExceedsPaddingSizeError, InvalidBytesLengthError;
 var init_data = __esm({
   "node_modules/viem/_esm/errors/data.js"() {
+    init_browser_buffer_global();
     init_base();
     SliceOffsetOutOfBoundsError = class extends BaseError2 {
       constructor({ offset, position, size: size5 }) {
@@ -1434,6 +3247,7 @@ function padBytes(bytes, { dir, size: size5 = 32 } = {}) {
 }
 var init_pad = __esm({
   "node_modules/viem/_esm/utils/data/pad.js"() {
+    init_browser_buffer_global();
     init_data();
   }
 });
@@ -1442,6 +3256,7 @@ var init_pad = __esm({
 var IntegerOutOfRangeError, InvalidBytesBooleanError, InvalidHexBooleanError, SizeOverflowError;
 var init_encoding = __esm({
   "node_modules/viem/_esm/errors/encoding.js"() {
+    init_browser_buffer_global();
     init_base();
     IntegerOutOfRangeError = class extends BaseError2 {
       constructor({ max, min, signed, size: size5, value }) {
@@ -1488,6 +3303,7 @@ function trim(hexOrBytes, { dir = "left" } = {}) {
 }
 var init_trim = __esm({
   "node_modules/viem/_esm/utils/data/trim.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -1539,6 +3355,7 @@ function hexToNumber(hex, opts = {}) {
 }
 var init_fromHex = __esm({
   "node_modules/viem/_esm/utils/encoding/fromHex.js"() {
+    init_browser_buffer_global();
     init_encoding();
     init_size();
     init_trim();
@@ -1612,6 +3429,7 @@ function stringToHex(value_, opts = {}) {
 var hexes, encoder;
 var init_toHex = __esm({
   "node_modules/viem/_esm/utils/encoding/toHex.js"() {
+    init_browser_buffer_global();
     init_encoding();
     init_pad();
     init_fromHex();
@@ -1684,6 +3502,7 @@ function stringToBytes(value, opts = {}) {
 var encoder2, charCodeMap;
 var init_toBytes = __esm({
   "node_modules/viem/_esm/utils/encoding/toBytes.js"() {
+    init_browser_buffer_global();
     init_base();
     init_isHex();
     init_pad();
@@ -1720,6 +3539,7 @@ function split(lst, le = false) {
 var U32_MASK64, _32n, rotlSH, rotlSL, rotlBH, rotlBL;
 var init_u64 = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/_u64.js"() {
+    init_browser_buffer_global();
     U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
     _32n = /* @__PURE__ */ BigInt(32);
     rotlSH = (h, l, s) => h << s | l >>> 32 - s;
@@ -1733,6 +3553,7 @@ var init_u64 = __esm({
 var crypto2;
 var init_crypto = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/crypto.js"() {
+    init_browser_buffer_global();
     crypto2 = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : void 0;
   }
 });
@@ -1839,6 +3660,7 @@ function randomBytes(bytesLength = 32) {
 var isLE, swap32IfBE, Hash;
 var init_utils2 = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/utils.js"() {
+    init_browser_buffer_global();
     init_crypto();
     isLE = /* @__PURE__ */ (() => new Uint8Array(new Uint32Array([287454020]).buffer)[0] === 68)();
     swap32IfBE = isLE ? (u) => u : byteSwap32;
@@ -1891,6 +3713,7 @@ function keccakP(s, rounds = 24) {
 var _0n, _1n, _2n, _7n, _256n, _0x71n, SHA3_PI, SHA3_ROTL, _SHA3_IOTA, IOTAS, SHA3_IOTA_H, SHA3_IOTA_L, rotlH, rotlL, Keccak, gen, keccak_256;
 var init_sha3 = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/sha3.js"() {
+    init_browser_buffer_global();
     init_u64();
     init_utils2();
     _0n = BigInt(0);
@@ -2045,6 +3868,7 @@ function keccak256(value, to_) {
 }
 var init_keccak256 = __esm({
   "node_modules/viem/_esm/utils/hash/keccak256.js"() {
+    init_browser_buffer_global();
     init_sha3();
     init_isHex();
     init_toBytes();
@@ -2059,6 +3883,7 @@ function hashSignature(sig) {
 var hash;
 var init_hashSignature = __esm({
   "node_modules/viem/_esm/utils/hash/hashSignature.js"() {
+    init_browser_buffer_global();
     init_toBytes();
     init_keccak256();
     hash = (value) => keccak256(toBytes(value));
@@ -2110,6 +3935,7 @@ function normalizeSignature(signature) {
 }
 var init_normalizeSignature = __esm({
   "node_modules/viem/_esm/utils/hash/normalizeSignature.js"() {
+    init_browser_buffer_global();
     init_base();
   }
 });
@@ -2118,6 +3944,7 @@ var init_normalizeSignature = __esm({
 var toSignature;
 var init_toSignature = __esm({
   "node_modules/viem/_esm/utils/hash/toSignature.js"() {
+    init_browser_buffer_global();
     init_exports();
     init_normalizeSignature();
     toSignature = (def) => {
@@ -2137,6 +3964,7 @@ function toSignatureHash(fn) {
 }
 var init_toSignatureHash = __esm({
   "node_modules/viem/_esm/utils/hash/toSignatureHash.js"() {
+    init_browser_buffer_global();
     init_hashSignature();
     init_toSignature();
   }
@@ -2146,6 +3974,7 @@ var init_toSignatureHash = __esm({
 var toEventSelector;
 var init_toEventSelector = __esm({
   "node_modules/viem/_esm/utils/hash/toEventSelector.js"() {
+    init_browser_buffer_global();
     init_toSignatureHash();
     toEventSelector = toSignatureHash;
   }
@@ -2155,6 +3984,7 @@ var init_toEventSelector = __esm({
 var InvalidAddressError;
 var init_address = __esm({
   "node_modules/viem/_esm/errors/address.js"() {
+    init_browser_buffer_global();
     init_base();
     InvalidAddressError = class extends BaseError2 {
       constructor({ address: address2 }) {
@@ -2174,6 +4004,7 @@ var init_address = __esm({
 var LruMap;
 var init_lru = __esm({
   "node_modules/viem/_esm/utils/lru.js"() {
+    init_browser_buffer_global();
     LruMap = class extends Map {
       constructor(size5) {
         super();
@@ -2235,6 +4066,7 @@ function getAddress(address2, chainId) {
 var checksumAddressCache;
 var init_getAddress = __esm({
   "node_modules/viem/_esm/utils/address/getAddress.js"() {
+    init_browser_buffer_global();
     init_address();
     init_toBytes();
     init_keccak256();
@@ -2265,6 +4097,7 @@ function isAddress(address2, options) {
 var addressRegex, isAddressCache;
 var init_isAddress = __esm({
   "node_modules/viem/_esm/utils/address/isAddress.js"() {
+    init_browser_buffer_global();
     init_lru();
     init_getAddress();
     addressRegex = /^0x[a-fA-F0-9]{40}$/;
@@ -2296,6 +4129,7 @@ function concatHex(values) {
 }
 var init_concat = __esm({
   "node_modules/viem/_esm/utils/data/concat.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -2342,6 +4176,7 @@ function sliceHex(value_, start, end, { strict } = {}) {
 }
 var init_slice = __esm({
   "node_modules/viem/_esm/utils/data/slice.js"() {
+    init_browser_buffer_global();
     init_data();
     init_isHex();
     init_size();
@@ -2352,6 +4187,7 @@ var init_slice = __esm({
 var bytesRegex2, integerRegex2;
 var init_regex2 = __esm({
   "node_modules/viem/_esm/utils/regex.js"() {
+    init_browser_buffer_global();
     bytesRegex2 = /^bytes([1-9]|1[0-9]|2[0-9]|3[0-2])?$/;
     integerRegex2 = /^(u?int)(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?$/;
   }
@@ -2572,6 +4408,7 @@ function getArrayComponents(type2) {
 }
 var init_encodeAbiParameters = __esm({
   "node_modules/viem/_esm/utils/abi/encodeAbiParameters.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_address();
     init_base();
@@ -2590,6 +4427,7 @@ var init_encodeAbiParameters = __esm({
 var toFunctionSelector;
 var init_toFunctionSelector = __esm({
   "node_modules/viem/_esm/utils/hash/toFunctionSelector.js"() {
+    init_browser_buffer_global();
     init_slice();
     init_toSignatureHash();
     toFunctionSelector = (fn) => slice(toSignatureHash(fn), 0, 4);
@@ -2709,6 +4547,7 @@ function getAmbiguousTypes(sourceParameters, targetParameters, args) {
 }
 var init_getAbiItem = __esm({
   "node_modules/viem/_esm/utils/abi/getAbiItem.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_isHex();
     init_isAddress();
@@ -2725,6 +4564,7 @@ function parseAccount(account) {
 }
 var init_parseAccount = __esm({
   "node_modules/viem/_esm/accounts/utils/parseAccount.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -2752,6 +4592,7 @@ function prepareEncodeFunctionData(parameters) {
 var docsPath2;
 var init_prepareEncodeFunctionData = __esm({
   "node_modules/viem/_esm/utils/abi/prepareEncodeFunctionData.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_toFunctionSelector();
     init_formatAbiItem2();
@@ -2775,6 +4616,7 @@ function encodeFunctionData(parameters) {
 }
 var init_encodeFunctionData = __esm({
   "node_modules/viem/_esm/utils/abi/encodeFunctionData.js"() {
+    init_browser_buffer_global();
     init_concat();
     init_encodeAbiParameters();
     init_prepareEncodeFunctionData();
@@ -2785,6 +4627,7 @@ var init_encodeFunctionData = __esm({
 var panicReasons, solidityError, solidityPanic;
 var init_solidity = __esm({
   "node_modules/viem/_esm/constants/solidity.js"() {
+    init_browser_buffer_global();
     panicReasons = {
       1: "An `assert` condition failed.",
       17: "Arithmetic operation resulted in underflow or overflow.",
@@ -2823,6 +4666,7 @@ var init_solidity = __esm({
 var NegativeOffsetError, PositionOutOfBoundsError, RecursiveReadLimitExceededError;
 var init_cursor = __esm({
   "node_modules/viem/_esm/errors/cursor.js"() {
+    init_browser_buffer_global();
     init_base();
     NegativeOffsetError = class extends BaseError2 {
       constructor({ offset }) {
@@ -2856,6 +4700,7 @@ function createCursor(bytes, { recursiveReadLimit = 8192 } = {}) {
 var staticCursor;
 var init_cursor2 = __esm({
   "node_modules/viem/_esm/utils/cursor.js"() {
+    init_browser_buffer_global();
     init_cursor();
     staticCursor = {
       bytes: new Uint8Array(),
@@ -3052,6 +4897,7 @@ function bytesToString(bytes_, opts = {}) {
 }
 var init_fromBytes = __esm({
   "node_modules/viem/_esm/utils/encoding/fromBytes.js"() {
+    init_browser_buffer_global();
     init_encoding();
     init_trim();
     init_fromHex();
@@ -3246,6 +5092,7 @@ function hasDynamicChild(param) {
 var sizeOfLength, sizeOfOffset;
 var init_decodeAbiParameters = __esm({
   "node_modules/viem/_esm/utils/abi/decodeAbiParameters.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_getAddress();
     init_cursor2();
@@ -3282,6 +5129,7 @@ function decodeErrorResult(parameters) {
 }
 var init_decodeErrorResult = __esm({
   "node_modules/viem/_esm/utils/abi/decodeErrorResult.js"() {
+    init_browser_buffer_global();
     init_solidity();
     init_abi();
     init_slice();
@@ -3295,6 +5143,7 @@ var init_decodeErrorResult = __esm({
 var stringify;
 var init_stringify = __esm({
   "node_modules/viem/_esm/utils/stringify.js"() {
+    init_browser_buffer_global();
     stringify = (value, replacer, space) => JSON.stringify(value, (key, value_) => {
       const value2 = typeof value_ === "bigint" ? value_.toString() : value_;
       return typeof replacer === "function" ? replacer(key, value2) : value2;
@@ -3314,6 +5163,7 @@ function formatAbiItemWithArgs({ abiItem, args, includeFunctionName = true, incl
 }
 var init_formatAbiItemWithArgs = __esm({
   "node_modules/viem/_esm/utils/abi/formatAbiItemWithArgs.js"() {
+    init_browser_buffer_global();
     init_stringify();
   }
 });
@@ -3322,6 +5172,7 @@ var init_formatAbiItemWithArgs = __esm({
 var etherUnits, gweiUnits;
 var init_unit = __esm({
   "node_modules/viem/_esm/constants/unit.js"() {
+    init_browser_buffer_global();
     etherUnits = {
       gwei: 9,
       wei: 18
@@ -3349,6 +5200,7 @@ function formatUnits(value, decimals) {
 }
 var init_formatUnits = __esm({
   "node_modules/viem/_esm/utils/unit/formatUnits.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -3358,6 +5210,7 @@ function formatEther(wei, unit = "wei") {
 }
 var init_formatEther = __esm({
   "node_modules/viem/_esm/utils/unit/formatEther.js"() {
+    init_browser_buffer_global();
     init_unit();
     init_formatUnits();
   }
@@ -3369,6 +5222,7 @@ function formatGwei(wei, unit = "wei") {
 }
 var init_formatGwei = __esm({
   "node_modules/viem/_esm/utils/unit/formatGwei.js"() {
+    init_browser_buffer_global();
     init_unit();
     init_formatUnits();
   }
@@ -3408,6 +5262,7 @@ function prettyStateOverride(stateOverride) {
 var AccountStateConflictError, StateAssignmentConflictError;
 var init_stateOverride = __esm({
   "node_modules/viem/_esm/errors/stateOverride.js"() {
+    init_browser_buffer_global();
     init_base();
     AccountStateConflictError = class extends BaseError2 {
       constructor({ address: address2 }) {
@@ -3439,6 +5294,7 @@ function prettyPrint(args) {
 var InvalidLegacyVError, InvalidSerializableTransactionError, InvalidStorageKeySizeError, TransactionExecutionError, TransactionNotFoundError, TransactionReceiptNotFoundError, TransactionReceiptRevertedError, WaitForTransactionReceiptTimeoutError;
 var init_transaction = __esm({
   "node_modules/viem/_esm/errors/transaction.js"() {
+    init_browser_buffer_global();
     init_formatEther();
     init_formatGwei();
     init_base();
@@ -3576,6 +5432,7 @@ function isAbortError(error) {
 var getContractAddress, getUrl;
 var init_utils3 = __esm({
   "node_modules/viem/_esm/errors/utils.js"() {
+    init_browser_buffer_global();
     getContractAddress = (address2) => address2;
     getUrl = (url) => {
       try {
@@ -3596,6 +5453,7 @@ var init_utils3 = __esm({
 var CallExecutionError, ContractFunctionExecutionError, ContractFunctionRevertedError, ContractFunctionZeroDataError, CounterfactualDeploymentFailedError, RawContractError;
 var init_contract = __esm({
   "node_modules/viem/_esm/errors/contract.js"() {
+    init_browser_buffer_global();
     init_parseAccount();
     init_solidity();
     init_decodeErrorResult();
@@ -3853,6 +5711,7 @@ ${prettyStateOverride(stateOverride)}`;
 var HttpRequestError, RpcRequestError, TimeoutError;
 var init_request = __esm({
   "node_modules/viem/_esm/errors/request.js"() {
+    init_browser_buffer_global();
     init_stringify();
     init_base();
     init_utils3();
@@ -3952,6 +5811,7 @@ var init_request = __esm({
 var unknownErrorCode, RpcError, ProviderRpcError, ParseRpcError, InvalidRequestRpcError, MethodNotFoundRpcError, InvalidParamsRpcError, InternalRpcError, InvalidInputRpcError, ResourceNotFoundRpcError, ResourceUnavailableRpcError, TransactionRejectedRpcError, MethodNotSupportedRpcError, LimitExceededRpcError, JsonRpcVersionUnsupportedError, UserRejectedRequestError, UnauthorizedProviderError, UnsupportedProviderMethodError, ProviderDisconnectedError, ChainDisconnectedError, SwitchChainError, UnsupportedNonOptionalCapabilityError, UnsupportedChainIdError, DuplicateIdError, UnknownBundleIdError, BundleTooLargeError, AtomicReadyWalletRejectedUpgradeError, AtomicityNotSupportedError, WalletConnectSessionSettlementError, UnknownRpcError;
 var init_rpc = __esm({
   "node_modules/viem/_esm/errors/rpc.js"() {
+    init_browser_buffer_global();
     init_base();
     init_request();
     unknownErrorCode = -1;
@@ -4420,6 +6280,7 @@ function Maj(a, b, c) {
 var HashMD, SHA256_IV;
 var init_md = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/_md.js"() {
+    init_browser_buffer_global();
     init_utils2();
     HashMD = class extends Hash {
       constructor(blockLen, outputLen, padOffset, isLE3) {
@@ -4528,6 +6389,7 @@ var init_md = __esm({
 var SHA256_K, SHA256_W, SHA256, sha256;
 var init_sha2 = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/sha2.js"() {
+    init_browser_buffer_global();
     init_md();
     init_u64();
     init_utils2();
@@ -4676,6 +6538,7 @@ var init_sha2 = __esm({
 var HMAC, hmac;
 var init_hmac = __esm({
   "node_modules/viem/node_modules/@noble/hashes/esm/hmac.js"() {
+    init_browser_buffer_global();
     init_utils2();
     HMAC = class extends Hash {
       constructor(hash5, _key) {
@@ -4951,6 +6814,7 @@ function memoized(fn) {
 var _0n2, _1n2, hasHexBuiltin, hexes2, asciis, isPosBig, bitMask, u8n, u8fr, validatorFns;
 var init_utils4 = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/abstract/utils.js"() {
+    init_browser_buffer_global();
     _0n2 = /* @__PURE__ */ BigInt(0);
     _1n2 = /* @__PURE__ */ BigInt(1);
     hasHexBuiltin = // @ts-ignore
@@ -5225,6 +7089,7 @@ function mapHashToField(key, fieldOrder, isLE3 = false) {
 var _0n3, _1n3, _2n2, _3n, _4n, _5n, _8n, FIELD_FIELDS;
 var init_modular = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/abstract/modular.js"() {
+    init_browser_buffer_global();
     init_utils2();
     init_utils4();
     _0n3 = BigInt(0);
@@ -5488,6 +7353,7 @@ function validateBasic(curve) {
 var _0n4, _1n4, pointPrecomputes, pointWindowSizes;
 var init_curve = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/abstract/curve.js"() {
+    init_browser_buffer_global();
     init_modular();
     init_utils4();
     _0n4 = BigInt(0);
@@ -6375,6 +8241,7 @@ function mapToCurveSimpleSWU(Fp, opts) {
 var DERErr, DER, _0n5, _1n5, _2n3, _3n2, _4n2;
 var init_weierstrass = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/abstract/weierstrass.js"() {
+    init_browser_buffer_global();
     init_curve();
     init_modular();
     init_utils4();
@@ -6505,6 +8372,7 @@ function createCurve(curveDef, defHash) {
 }
 var init_shortw_utils = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/_shortw_utils.js"() {
+    init_browser_buffer_global();
     init_hmac();
     init_utils2();
     init_weierstrass();
@@ -6660,6 +8528,7 @@ function createHasher2(Point3, mapToCurve, defaults) {
 var os2ip;
 var init_hash_to_curve = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/abstract/hash-to-curve.js"() {
+    init_browser_buffer_global();
     init_modular();
     init_utils4();
     os2ip = bytesToNumberBE;
@@ -6771,6 +8640,7 @@ function schnorrVerify(signature, message, publicKey) {
 var secp256k1P, secp256k1N, _0n6, _1n6, _2n4, divNearest, Fpk1, secp256k1, TAGGED_HASH_PREFIXES, pointToBytes, numTo32b, modP, modN, Point, GmulAdd, num, schnorr, isoMap, mapSWU, secp256k1_hasher, hashToCurve, encodeToCurve;
 var init_secp256k1 = __esm({
   "node_modules/viem/node_modules/@noble/curves/esm/secp256k1.js"() {
+    init_browser_buffer_global();
     init_sha2();
     init_utils2();
     init_shortw_utils();
@@ -6901,6 +8771,7 @@ var init_secp256k1 = __esm({
 var ExecutionRevertedError, FeeCapTooHighError, FeeCapTooLowError, NonceTooHighError, NonceTooLowError, NonceMaxValueError, InsufficientFundsError, IntrinsicGasTooHighError, IntrinsicGasTooLowError, TransactionTypeNotSupportedError, TipAboveFeeCapError, UnknownNodeError;
 var init_node = __esm({
   "node_modules/viem/_esm/errors/node.js"() {
+    init_browser_buffer_global();
     init_formatGwei();
     init_base();
     ExecutionRevertedError = class extends BaseError2 {
@@ -7133,6 +9004,7 @@ function getNodeError(err, args) {
 }
 var init_getNodeError = __esm({
   "node_modules/viem/_esm/utils/errors/getNodeError.js"() {
+    init_browser_buffer_global();
     init_base();
     init_node();
     init_request();
@@ -7160,6 +9032,7 @@ function extract(value_, { format: format3 }) {
 }
 var init_extract = __esm({
   "node_modules/viem/_esm/utils/formatters/extract.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -7186,6 +9059,7 @@ function defineFormatter(type2, format3) {
 }
 var init_formatter = __esm({
   "node_modules/viem/_esm/utils/formatters/formatter.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -7244,6 +9118,7 @@ function formatAuthorizationList(authorizationList) {
 var rpcTransactionType, defineTransactionRequest;
 var init_transactionRequest = __esm({
   "node_modules/viem/_esm/utils/formatters/transactionRequest.js"() {
+    init_browser_buffer_global();
     init_toHex();
     init_formatter();
     rpcTransactionType = {
@@ -7311,6 +9186,7 @@ function serializeStateOverride(parameters) {
 }
 var init_stateOverride2 = __esm({
   "node_modules/viem/_esm/utils/stateOverride.js"() {
+    init_browser_buffer_global();
     init_address();
     init_data();
     init_stateOverride();
@@ -7323,6 +9199,7 @@ var init_stateOverride2 = __esm({
 var maxInt8, maxInt16, maxInt24, maxInt32, maxInt40, maxInt48, maxInt56, maxInt64, maxInt72, maxInt80, maxInt88, maxInt96, maxInt104, maxInt112, maxInt120, maxInt128, maxInt136, maxInt144, maxInt152, maxInt160, maxInt168, maxInt176, maxInt184, maxInt192, maxInt200, maxInt208, maxInt216, maxInt224, maxInt232, maxInt240, maxInt248, maxInt256, minInt8, minInt16, minInt24, minInt32, minInt40, minInt48, minInt56, minInt64, minInt72, minInt80, minInt88, minInt96, minInt104, minInt112, minInt120, minInt128, minInt136, minInt144, minInt152, minInt160, minInt168, minInt176, minInt184, minInt192, minInt200, minInt208, minInt216, minInt224, minInt232, minInt240, minInt248, minInt256, maxUint8, maxUint16, maxUint24, maxUint32, maxUint40, maxUint48, maxUint56, maxUint64, maxUint72, maxUint80, maxUint88, maxUint96, maxUint104, maxUint112, maxUint120, maxUint128, maxUint136, maxUint144, maxUint152, maxUint160, maxUint168, maxUint176, maxUint184, maxUint192, maxUint200, maxUint208, maxUint216, maxUint224, maxUint232, maxUint240, maxUint248, maxUint256;
 var init_number = __esm({
   "node_modules/viem/_esm/constants/number.js"() {
+    init_browser_buffer_global();
     maxInt8 = 2n ** (8n - 1n) - 1n;
     maxInt16 = 2n ** (16n - 1n) - 1n;
     maxInt24 = 2n ** (24n - 1n) - 1n;
@@ -7437,6 +9314,7 @@ function assertRequest(args) {
 }
 var init_assertRequest = __esm({
   "node_modules/viem/_esm/utils/transaction/assertRequest.js"() {
+    init_browser_buffer_global();
     init_parseAccount();
     init_number();
     init_address();
@@ -7458,6 +9336,7 @@ function formatBlockParameter(parameters) {
 }
 var init_formatBlockParameter = __esm({
   "node_modules/viem/_esm/utils/block/formatBlockParameter.js"() {
+    init_browser_buffer_global();
     init_base();
     init_toHex();
   }
@@ -7473,6 +9352,7 @@ function isAddressEqual(a, b) {
 }
 var init_isAddressEqual = __esm({
   "node_modules/viem/_esm/utils/address/isAddressEqual.js"() {
+    init_browser_buffer_global();
     init_address();
     init_isAddress();
   }
@@ -7502,6 +9382,7 @@ function decodeFunctionResult(parameters) {
 var docsPath4;
 var init_decodeFunctionResult = __esm({
   "node_modules/viem/_esm/utils/abi/decodeFunctionResult.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_decodeAbiParameters();
     init_getAbiItem();
@@ -7717,6 +9598,7 @@ function memoized2(fn) {
 var _0n7, _1n7, hasHexBuiltin2, hexes3, asciis2, isPosBig2, bitMask2, u8n2, u8fr2, validatorFns2;
 var init_utils5 = __esm({
   "node_modules/ox/node_modules/@noble/curves/esm/abstract/utils.js"() {
+    init_browser_buffer_global();
     _0n7 = /* @__PURE__ */ BigInt(0);
     _1n7 = /* @__PURE__ */ BigInt(1);
     hasHexBuiltin2 = // @ts-ignore
@@ -7745,6 +9627,7 @@ var init_utils5 = __esm({
 var version3;
 var init_version3 = __esm({
   "node_modules/ox/_esm/core/version.js"() {
+    init_browser_buffer_global();
     version3 = "0.1.1";
   }
 });
@@ -7755,6 +9638,7 @@ function getVersion() {
 }
 var init_errors2 = __esm({
   "node_modules/ox/_esm/core/internal/errors.js"() {
+    init_browser_buffer_global();
     init_version3();
   }
 });
@@ -7770,6 +9654,7 @@ function walk2(err, fn) {
 var BaseError3;
 var init_Errors = __esm({
   "node_modules/ox/_esm/core/Errors.js"() {
+    init_browser_buffer_global();
     init_errors2();
     BaseError3 = class _BaseError extends Error {
       static setStaticOptions(options) {
@@ -7961,6 +9846,7 @@ function trim2(value, options = {}) {
 var charCodeMap2;
 var init_bytes = __esm({
   "node_modules/ox/_esm/core/internal/bytes.js"() {
+    init_browser_buffer_global();
     init_Bytes();
     charCodeMap2 = {
       zero: 48,
@@ -8030,6 +9916,7 @@ function trim3(value, options = {}) {
 }
 var init_hex = __esm({
   "node_modules/ox/_esm/core/internal/hex.js"() {
+    init_browser_buffer_global();
     init_Hex();
   }
 });
@@ -8047,6 +9934,7 @@ function stringify2(value, replacer, space) {
 var bigIntSuffix;
 var init_Json = __esm({
   "node_modules/ox/_esm/core/Json.js"() {
+    init_browser_buffer_global();
     bigIntSuffix = "#__bigint";
   }
 });
@@ -8189,6 +10077,7 @@ function validate(value) {
 var decoder, encoder3, InvalidBytesBooleanError2, InvalidBytesTypeError, SizeOverflowError2, SliceOffsetOutOfBoundsError2, SizeExceedsPaddingSizeError2;
 var init_Bytes = __esm({
   "node_modules/ox/_esm/core/Bytes.js"() {
+    init_browser_buffer_global();
     init_utils5();
     init_Errors();
     init_Hex();
@@ -8400,6 +10289,7 @@ function validate2(value, options = {}) {
 var encoder4, hexes4, IntegerOutOfRangeError2, InvalidHexTypeError, InvalidHexValueError, InvalidLengthError, SizeOverflowError3, SliceOffsetOutOfBoundsError3, SizeExceedsPaddingSizeError3;
 var init_Hex = __esm({
   "node_modules/ox/_esm/core/Hex.js"() {
+    init_browser_buffer_global();
     init_utils5();
     init_Bytes();
     init_Errors();
@@ -8507,6 +10397,7 @@ function toRpc(withdrawal) {
 }
 var init_Withdrawal = __esm({
   "node_modules/ox/_esm/core/Withdrawal.js"() {
+    init_browser_buffer_global();
     init_Hex();
   }
 });
@@ -8542,6 +10433,7 @@ function toRpc2(blockOverrides) {
 }
 var init_BlockOverrides = __esm({
   "node_modules/ox/_esm/core/BlockOverrides.js"() {
+    init_browser_buffer_global();
     init_Hex();
     init_Withdrawal();
   }
@@ -8551,6 +10443,7 @@ var init_BlockOverrides = __esm({
 var multicall3Abi, batchGatewayAbi, universalResolverErrors, universalResolverResolveAbi, universalResolverReverseAbi, textResolverAbi, addressResolverAbi, erc1271Abi, erc6492SignatureValidatorAbi;
 var init_abis = __esm({
   "node_modules/viem/_esm/constants/abis.js"() {
+    init_browser_buffer_global();
     multicall3Abi = [
       {
         inputs: [
@@ -8909,6 +10802,7 @@ var init_abis = __esm({
 var aggregate3Signature;
 var init_contract2 = __esm({
   "node_modules/viem/_esm/constants/contract.js"() {
+    init_browser_buffer_global();
     aggregate3Signature = "0x82ad56cb";
   }
 });
@@ -8917,6 +10811,7 @@ var init_contract2 = __esm({
 var deploylessCallViaBytecodeBytecode, deploylessCallViaFactoryBytecode, erc6492SignatureValidatorByteCode, multicall3Bytecode;
 var init_contracts = __esm({
   "node_modules/viem/_esm/constants/contracts.js"() {
+    init_browser_buffer_global();
     deploylessCallViaBytecodeBytecode = "0x608060405234801561001057600080fd5b5060405161018e38038061018e83398101604081905261002f91610124565b6000808351602085016000f59050803b61004857600080fd5b6000808351602085016000855af16040513d6000823e81610067573d81fd5b3d81f35b634e487b7160e01b600052604160045260246000fd5b600082601f83011261009257600080fd5b81516001600160401b038111156100ab576100ab61006b565b604051601f8201601f19908116603f011681016001600160401b03811182821017156100d9576100d961006b565b6040528181528382016020018510156100f157600080fd5b60005b82811015610110576020818601810151838301820152016100f4565b506000918101602001919091529392505050565b6000806040838503121561013757600080fd5b82516001600160401b0381111561014d57600080fd5b61015985828601610081565b602085015190935090506001600160401b0381111561017757600080fd5b61018385828601610081565b915050925092905056fe";
     deploylessCallViaFactoryBytecode = "0x608060405234801561001057600080fd5b506040516102c03803806102c083398101604081905261002f916101e6565b836001600160a01b03163b6000036100e457600080836001600160a01b03168360405161005c9190610270565b6000604051808303816000865af19150503d8060008114610099576040519150601f19603f3d011682016040523d82523d6000602084013e61009e565b606091505b50915091508115806100b857506001600160a01b0386163b155b156100e1578060405163101bb98d60e01b81526004016100d8919061028c565b60405180910390fd5b50505b6000808451602086016000885af16040513d6000823e81610103573d81fd5b3d81f35b80516001600160a01b038116811461011e57600080fd5b919050565b634e487b7160e01b600052604160045260246000fd5b60005b8381101561015457818101518382015260200161013c565b50506000910152565b600082601f83011261016e57600080fd5b81516001600160401b0381111561018757610187610123565b604051601f8201601f19908116603f011681016001600160401b03811182821017156101b5576101b5610123565b6040528181528382016020018510156101cd57600080fd5b6101de826020830160208701610139565b949350505050565b600080600080608085870312156101fc57600080fd5b61020585610107565b60208601519094506001600160401b0381111561022157600080fd5b61022d8782880161015d565b93505061023c60408601610107565b60608601519092506001600160401b0381111561025857600080fd5b6102648782880161015d565b91505092959194509250565b60008251610282818460208701610139565b9190910192915050565b60208152600082518060208401526102ab816040850160208701610139565b601f01601f1916919091016040019291505056fe";
     erc6492SignatureValidatorByteCode = "0x608060405234801561001057600080fd5b5060405161069438038061069483398101604081905261002f9161051e565b600061003c848484610048565b9050806000526001601ff35b60007f64926492649264926492649264926492649264926492649264926492649264926100748361040c565b036101e7576000606080848060200190518101906100929190610577565b60405192955090935091506000906001600160a01b038516906100b69085906105dd565b6000604051808303816000865af19150503d80600081146100f3576040519150601f19603f3d011682016040523d82523d6000602084013e6100f8565b606091505b50509050876001600160a01b03163b60000361016057806101605760405162461bcd60e51b815260206004820152601e60248201527f5369676e617475726556616c696461746f723a206465706c6f796d656e74000060448201526064015b60405180910390fd5b604051630b135d3f60e11b808252906001600160a01b038a1690631626ba7e90610190908b9087906004016105f9565b602060405180830381865afa1580156101ad573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101d19190610633565b6001600160e01b03191614945050505050610405565b6001600160a01b0384163b1561027a57604051630b135d3f60e11b808252906001600160a01b03861690631626ba7e9061022790879087906004016105f9565b602060405180830381865afa158015610244573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102689190610633565b6001600160e01b031916149050610405565b81516041146102df5760405162461bcd60e51b815260206004820152603a602482015260008051602061067483398151915260448201527f3a20696e76616c6964207369676e6174757265206c656e6774680000000000006064820152608401610157565b6102e7610425565b5060208201516040808401518451859392600091859190811061030c5761030c61065d565b016020015160f81c9050601b811480159061032b57508060ff16601c14155b1561038c5760405162461bcd60e51b815260206004820152603b602482015260008051602061067483398151915260448201527f3a20696e76616c6964207369676e617475726520762076616c756500000000006064820152608401610157565b60408051600081526020810180835289905260ff83169181019190915260608101849052608081018390526001600160a01b0389169060019060a0016020604051602081039080840390855afa1580156103ea573d6000803e3d6000fd5b505050602060405103516001600160a01b0316149450505050505b9392505050565b600060208251101561041d57600080fd5b508051015190565b60405180606001604052806003906020820280368337509192915050565b6001600160a01b038116811461045857600080fd5b50565b634e487b7160e01b600052604160045260246000fd5b60005b8381101561048c578181015183820152602001610474565b50506000910152565b600082601f8301126104a657600080fd5b81516001600160401b038111156104bf576104bf61045b565b604051601f8201601f19908116603f011681016001600160401b03811182821017156104ed576104ed61045b565b60405281815283820160200185101561050557600080fd5b610516826020830160208701610471565b949350505050565b60008060006060848603121561053357600080fd5b835161053e81610443565b6020850151604086015191945092506001600160401b0381111561056157600080fd5b61056d86828701610495565b9150509250925092565b60008060006060848603121561058c57600080fd5b835161059781610443565b60208501519093506001600160401b038111156105b357600080fd5b6105bf86828701610495565b604086015190935090506001600160401b0381111561056157600080fd5b600082516105ef818460208701610471565b9190910192915050565b828152604060208201526000825180604084015261061e816060850160208701610471565b601f01601f1916919091016060019392505050565b60006020828403121561064557600080fd5b81516001600160e01b03198116811461040557600080fd5b634e487b7160e01b600052603260045260246000fdfe5369676e617475726556616c696461746f72237265636f7665725369676e6572";
@@ -8928,6 +10823,7 @@ var init_contracts = __esm({
 var ChainDoesNotSupportContract, ChainMismatchError, ChainNotFoundError, ClientChainNotConfiguredError, InvalidChainIdError;
 var init_chain = __esm({
   "node_modules/viem/_esm/errors/chain.js"() {
+    init_browser_buffer_global();
     init_base();
     ChainDoesNotSupportContract = class extends BaseError2 {
       constructor({ blockNumber, chain: chain2, contract }) {
@@ -8998,6 +10894,7 @@ function encodeDeployData(parameters) {
 var docsPath5;
 var init_encodeDeployData = __esm({
   "node_modules/viem/_esm/utils/abi/encodeDeployData.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_concat();
     init_encodeAbiParameters();
@@ -9026,6 +10923,7 @@ function getChainContractAddress({ blockNumber, chain: chain2, contract: name2 }
 }
 var init_getChainContractAddress = __esm({
   "node_modules/viem/_esm/utils/chain/getChainContractAddress.js"() {
+    init_browser_buffer_global();
     init_chain();
   }
 });
@@ -9045,6 +10943,7 @@ function getCallError(err, { docsPath: docsPath8, ...args }) {
 }
 var init_getCallError = __esm({
   "node_modules/viem/_esm/utils/errors/getCallError.js"() {
+    init_browser_buffer_global();
     init_contract();
     init_node();
     init_getNodeError();
@@ -9063,6 +10962,7 @@ function withResolvers() {
 }
 var init_withResolvers = __esm({
   "node_modules/viem/_esm/utils/promise/withResolvers.js"() {
+    init_browser_buffer_global();
   }
 });
 
@@ -9113,6 +11013,7 @@ function createBatchScheduler({ fn, id, shouldSplitBatch, wait: wait2 = 0, sort 
 var schedulerCache;
 var init_createBatchScheduler = __esm({
   "node_modules/viem/_esm/utils/promise/createBatchScheduler.js"() {
+    init_browser_buffer_global();
     init_withResolvers();
     schedulerCache = /* @__PURE__ */ new Map();
   }
@@ -9122,6 +11023,7 @@ var init_createBatchScheduler = __esm({
 var OffchainLookupError, OffchainLookupResponseMalformedError, OffchainLookupSenderMismatchError;
 var init_ccip = __esm({
   "node_modules/viem/_esm/errors/ccip.js"() {
+    init_browser_buffer_global();
     init_stringify();
     init_base();
     init_utils3();
@@ -9187,6 +11089,7 @@ function decodeFunctionData(parameters) {
 }
 var init_decodeFunctionData = __esm({
   "node_modules/viem/_esm/utils/abi/decodeFunctionData.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_slice();
     init_toFunctionSelector();
@@ -9220,6 +11123,7 @@ function encodeErrorResult(parameters) {
 var docsPath6;
 var init_encodeErrorResult = __esm({
   "node_modules/viem/_esm/utils/abi/encodeErrorResult.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_concat();
     init_toFunctionSelector();
@@ -9258,6 +11162,7 @@ function encodeFunctionResult(parameters) {
 var docsPath7;
 var init_encodeFunctionResult = __esm({
   "node_modules/viem/_esm/utils/abi/encodeFunctionResult.js"() {
+    init_browser_buffer_global();
     init_abi();
     init_encodeAbiParameters();
     init_getAbiItem();
@@ -9302,6 +11207,7 @@ function encodeError(error) {
 var localBatchGatewayUrl;
 var init_localBatchGatewayRequest = __esm({
   "node_modules/viem/_esm/utils/ens/localBatchGatewayRequest.js"() {
+    init_browser_buffer_global();
     init_abis();
     init_solidity();
     init_decodeFunctionData();
@@ -9417,6 +11323,7 @@ async function ccipRequest({ data, requestOptions, sender, urls }) {
 var offchainLookupSignature, offchainLookupAbiItem;
 var init_ccip2 = __esm({
   "node_modules/viem/_esm/utils/ccip.js"() {
+    init_browser_buffer_global();
     init_call();
     init_ccip();
     init_request();
@@ -9700,6 +11607,7 @@ function getRevertErrorData(err) {
 var requestOptionsId, requestOptionsIds;
 var init_call = __esm({
   "node_modules/viem/_esm/actions/public/call.js"() {
+    init_browser_buffer_global();
     init_exports();
     init_BlockOverrides();
     init_parseAccount();
@@ -9730,6 +11638,7 @@ var init_call = __esm({
 // node_modules/bn.js/lib/bn.js
 var require_bn = __commonJS({
   "node_modules/bn.js/lib/bn.js"(exports, module) {
+    init_browser_buffer_global();
     (function(module2, exports2) {
       "use strict";
       function assert11(val, msg) {
@@ -9766,12 +11675,12 @@ var require_bn = __commonJS({
       }
       BN2.BN = BN2;
       BN2.wordSize = 26;
-      var Buffer2;
+      var Buffer3;
       try {
         if (typeof window !== "undefined" && typeof window.Buffer !== "undefined") {
-          Buffer2 = window.Buffer;
+          Buffer3 = window.Buffer;
         } else {
-          Buffer2 = __require("buffer").Buffer;
+          Buffer3 = require_buffer().Buffer;
         }
       } catch (e) {
       }
@@ -10228,9 +12137,9 @@ var require_bn = __commonJS({
       BN2.prototype.toJSON = function toJSON() {
         return this.toString(16, 2);
       };
-      if (Buffer2) {
+      if (Buffer3) {
         BN2.prototype.toBuffer = function toBuffer(endian, length) {
-          return this.toArrayLike(Buffer2, endian, length);
+          return this.toArrayLike(Buffer3, endian, length);
         };
       }
       BN2.prototype.toArray = function toArray(endian, length) {
@@ -12621,6 +14530,7 @@ var require_bn = __commonJS({
 // node_modules/js-sha3/src/sha3.js
 var require_sha3 = __commonJS({
   "node_modules/js-sha3/src/sha3.js"(exports, module) {
+    init_browser_buffer_global();
     (function() {
       "use strict";
       var INPUT_ERROR = "input is invalid type";
@@ -13267,6 +15177,18 @@ var require_sha3 = __commonJS({
   }
 });
 
+// circle/arc/src/arc-usdc-tools.ts
+init_browser_buffer_global();
+
+// node_modules/@circle-fin/app-kit/chains.mjs
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/index.js
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/v3/index.js
+init_browser_buffer_global();
+
 // node_modules/zod/dist/esm/v3/external.js
 var external_exports = {};
 __export(external_exports, {
@@ -13378,8 +15300,19 @@ __export(external_exports, {
   util: () => util,
   void: () => voidType
 });
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/v3/errors.js
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/v3/locales/en.js
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/v3/ZodError.js
+init_browser_buffer_global();
 
 // node_modules/zod/dist/esm/v3/helpers/util.js
+init_browser_buffer_global();
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -13741,6 +15674,7 @@ function getErrorMap() {
 }
 
 // node_modules/zod/dist/esm/v3/helpers/parseUtil.js
+init_browser_buffer_global();
 var makeIssue = (params) => {
   const { data, path, errorMaps, issueData } = params;
   const fullPath = [...path, ...issueData.path || []];
@@ -13850,7 +15784,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
+// node_modules/zod/dist/esm/v3/helpers/typeAliases.js
+init_browser_buffer_global();
+
+// node_modules/zod/dist/esm/v3/types.js
+init_browser_buffer_global();
+
 // node_modules/zod/dist/esm/v3/helpers/errorUtil.js
+init_browser_buffer_global();
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
@@ -20274,10 +22215,18 @@ var swapTokenEnumSchema = external_exports.enum([
 ]);
 external_exports.string().transform((value) => value.toUpperCase()).pipe(swapTokenEnumSchema);
 
+// node_modules/@circle-fin/adapter-viem-v2/index.mjs
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/index.js
+init_browser_buffer_global();
 init_exports();
 
+// node_modules/viem/_esm/actions/getContract.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/getAction.js
+init_browser_buffer_global();
 function getAction(client2, actionFn, name2) {
   const action_implicit = client2[actionFn.name];
   if (typeof action_implicit === "function")
@@ -20288,10 +22237,15 @@ function getAction(client2, actionFn, name2) {
   return (params) => actionFn(client2, params);
 }
 
+// node_modules/viem/_esm/actions/public/createContractEventFilter.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/abi/encodeEventTopics.js
+init_browser_buffer_global();
 init_abi();
 
 // node_modules/viem/_esm/errors/log.js
+init_browser_buffer_global();
 init_base();
 var FilterTypeNotSupportedError = class extends BaseError2 {
   constructor(type2) {
@@ -20350,6 +22304,7 @@ function encodeArg({ param, value }) {
 init_toHex();
 
 // node_modules/viem/_esm/utils/filters/createFilterRequestScope.js
+init_browser_buffer_global();
 function createFilterRequestScope(client2, { method }) {
   const requestMap = {};
   if (client2.transport.type === "fallback")
@@ -20394,10 +22349,12 @@ async function createContractEventFilter(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/estimateContractGas.js
+init_browser_buffer_global();
 init_parseAccount();
 init_encodeFunctionData();
 
 // node_modules/viem/_esm/utils/errors/getContractError.js
+init_browser_buffer_global();
 init_abi();
 init_base();
 init_contract();
@@ -20432,10 +22389,18 @@ function getContractError(err, { abi: abi2, address: address2, args, docsPath: d
 }
 
 // node_modules/viem/_esm/actions/public/estimateGas.js
+init_browser_buffer_global();
 init_parseAccount();
 init_base();
 
+// node_modules/viem/_esm/utils/authorization/recoverAuthorizationAddress.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/signature/recoverAddress.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/accounts/utils/publicKeyToAddress.js
+init_browser_buffer_global();
 init_getAddress();
 init_keccak256();
 function publicKeyToAddress(publicKey) {
@@ -20444,6 +22409,7 @@ function publicKeyToAddress(publicKey) {
 }
 
 // node_modules/viem/_esm/utils/signature/recoverPublicKey.js
+init_browser_buffer_global();
 init_isHex();
 init_size();
 init_fromHex();
@@ -20484,11 +22450,13 @@ async function recoverAddress({ hash: hash5, signature }) {
 }
 
 // node_modules/viem/_esm/utils/authorization/hashAuthorization.js
+init_browser_buffer_global();
 init_concat();
 init_toBytes();
 init_toHex();
 
 // node_modules/viem/_esm/utils/encoding/toRlp.js
+init_browser_buffer_global();
 init_base();
 init_cursor2();
 init_toBytes();
@@ -20611,7 +22579,11 @@ async function recoverAuthorizationAddress(parameters) {
 // node_modules/viem/_esm/actions/public/estimateGas.js
 init_toHex();
 
+// node_modules/viem/_esm/utils/errors/getEstimateGasError.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/estimateGas.js
+init_browser_buffer_global();
 init_formatEther();
 init_formatGwei();
 init_base();
@@ -20672,9 +22644,14 @@ init_stateOverride2();
 init_assertRequest();
 
 // node_modules/viem/_esm/actions/wallet/prepareTransactionRequest.js
+init_browser_buffer_global();
 init_parseAccount();
 
+// node_modules/viem/_esm/actions/public/estimateFeesPerGas.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/fee.js
+init_browser_buffer_global();
 init_formatGwei();
 init_base();
 var BaseFeeScalarError = class extends BaseError2 {
@@ -20698,9 +22675,14 @@ var MaxFeePerGasTooLowError = class extends BaseError2 {
 };
 
 // node_modules/viem/_esm/actions/public/estimateMaxPriorityFeePerGas.js
+init_browser_buffer_global();
 init_fromHex();
 
+// node_modules/viem/_esm/actions/public/getBlock.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/block.js
+init_browser_buffer_global();
 init_base();
 var BlockNotFoundError = class extends BaseError2 {
   constructor({ blockHash, blockNumber }) {
@@ -20717,9 +22699,11 @@ var BlockNotFoundError = class extends BaseError2 {
 init_toHex();
 
 // node_modules/viem/_esm/utils/formatters/block.js
+init_browser_buffer_global();
 init_formatter();
 
 // node_modules/viem/_esm/utils/formatters/transaction.js
+init_browser_buffer_global();
 init_fromHex();
 init_formatter();
 var transactionType = {
@@ -20844,6 +22828,7 @@ async function getBlock(client2, { blockHash, blockNumber, blockTag = client2.ex
 }
 
 // node_modules/viem/_esm/actions/public/getGasPrice.js
+init_browser_buffer_global();
 async function getGasPrice(client2) {
   const gasPrice = await client2.request({
     method: "eth_gasPrice"
@@ -20944,6 +22929,7 @@ async function internal_estimateFeesPerGas(client2, args) {
 }
 
 // node_modules/viem/_esm/actions/public/getTransactionCount.js
+init_browser_buffer_global();
 init_formatBlockParameter();
 init_fromHex();
 async function getTransactionCount(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
@@ -20963,6 +22949,7 @@ async function getTransactionCount(client2, { address: address2, blockHash, bloc
 }
 
 // node_modules/viem/_esm/utils/blob/blobsToCommitments.js
+init_browser_buffer_global();
 init_toBytes();
 init_toHex();
 function blobsToCommitments(parameters) {
@@ -20976,6 +22963,7 @@ function blobsToCommitments(parameters) {
 }
 
 // node_modules/viem/_esm/utils/blob/blobsToProofs.js
+init_browser_buffer_global();
 init_toBytes();
 init_toHex();
 function blobsToProofs(parameters) {
@@ -20992,10 +22980,18 @@ function blobsToProofs(parameters) {
   return to2 === "bytes" ? proofs : proofs.map((x) => bytesToHex(x));
 }
 
+// node_modules/viem/_esm/utils/blob/commitmentsToVersionedHashes.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/blob/commitmentToVersionedHash.js
+init_browser_buffer_global();
 init_toHex();
 
+// node_modules/viem/_esm/utils/hash/sha256.js
+init_browser_buffer_global();
+
 // node_modules/viem/node_modules/@noble/hashes/esm/sha256.js
+init_browser_buffer_global();
 init_sha2();
 var sha2562 = sha256;
 
@@ -21035,7 +23031,14 @@ function commitmentsToVersionedHashes(parameters) {
   return hashes;
 }
 
+// node_modules/viem/_esm/utils/blob/toBlobSidecars.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/blob/toBlobs.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/constants/blob.js
+init_browser_buffer_global();
 var blobsPerTransaction = 6;
 var bytesPerFieldElement = 32;
 var fieldElementsPerBlob = 4096;
@@ -21044,7 +23047,11 @@ var maxBytesPerTransaction = bytesPerBlob * blobsPerTransaction - // terminator 
 1 - // zero byte (0x00) appended to each field element.
 1 * fieldElementsPerBlob * blobsPerTransaction;
 
+// node_modules/viem/_esm/errors/blob.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/constants/kzg.js
+init_browser_buffer_global();
 var versionedHashVersionKzg = 1;
 
 // node_modules/viem/_esm/errors/blob.js
@@ -21142,6 +23149,7 @@ init_lru();
 init_assertRequest();
 
 // node_modules/viem/_esm/utils/transaction/getTransactionType.js
+init_browser_buffer_global();
 init_transaction();
 function getTransactionType(transaction) {
   if (transaction.type)
@@ -21162,9 +23170,11 @@ function getTransactionType(transaction) {
 }
 
 // node_modules/viem/_esm/actions/public/fillTransaction.js
+init_browser_buffer_global();
 init_parseAccount();
 
 // node_modules/viem/_esm/utils/errors/getTransactionError.js
+init_browser_buffer_global();
 init_node();
 init_transaction();
 init_getNodeError();
@@ -21187,6 +23197,7 @@ init_transactionRequest();
 init_assertRequest();
 
 // node_modules/viem/_esm/actions/public/getChainId.js
+init_browser_buffer_global();
 init_fromHex();
 async function getChainId(client2) {
   const chainIdHex = await client2.request({
@@ -21620,13 +23631,19 @@ async function estimateContractGas(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/getContractEvents.js
+init_browser_buffer_global();
 init_getAbiItem();
 
+// node_modules/viem/_esm/actions/public/getLogs.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/abi/parseEventLogs.js
+init_browser_buffer_global();
 init_isAddressEqual();
 init_toBytes();
 
 // node_modules/viem/_esm/utils/formatters/log.js
+init_browser_buffer_global();
 function formatLog(log, { args, eventName } = {}) {
   return {
     ...log,
@@ -21645,6 +23662,7 @@ init_keccak256();
 init_toEventSelector();
 
 // node_modules/viem/_esm/utils/abi/decodeEventLog.js
+init_browser_buffer_global();
 init_abi();
 init_cursor();
 init_size();
@@ -21906,6 +23924,7 @@ async function getContractEvents(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/readContract.js
+init_browser_buffer_global();
 init_decodeFunctionResult();
 init_encodeFunctionData();
 init_call();
@@ -21940,6 +23959,7 @@ async function readContract(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/simulateContract.js
+init_browser_buffer_global();
 init_parseAccount();
 init_decodeFunctionResult();
 init_encodeFunctionData();
@@ -21988,10 +24008,12 @@ async function simulateContract(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/watchContractEvent.js
+init_browser_buffer_global();
 init_abi();
 init_rpc();
 
 // node_modules/viem/_esm/utils/observe.js
+init_browser_buffer_global();
 var listenersCache = /* @__PURE__ */ new Map();
 var cleanupCache = /* @__PURE__ */ new Map();
 var callbackCount = 0;
@@ -22044,7 +24066,11 @@ function observe(observerId, callbacks, fn) {
   return unwatch;
 }
 
+// node_modules/viem/_esm/utils/poll.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/wait.js
+init_browser_buffer_global();
 init_utils3();
 async function wait(time, { signal } = {}) {
   return new Promise((resolve3, reject) => {
@@ -22092,7 +24118,11 @@ function poll(fn, { emitOnBegin, initialWaitTime, interval }) {
 // node_modules/viem/_esm/actions/public/watchContractEvent.js
 init_stringify();
 
+// node_modules/viem/_esm/actions/public/getBlockNumber.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/promise/withCache.js
+init_browser_buffer_global();
 var promiseCache = /* @__PURE__ */ new Map();
 var responseCache = /* @__PURE__ */ new Map();
 function getCache(cacheKey2) {
@@ -22144,6 +24174,7 @@ async function getBlockNumber(client2, { cacheTime = client2.cacheTime } = {}) {
 }
 
 // node_modules/viem/_esm/actions/public/getFilterChanges.js
+init_browser_buffer_global();
 async function getFilterChanges(_client, { filter }) {
   const strict = "strict" in filter && filter.strict;
   const logs = await filter.request({
@@ -22163,6 +24194,7 @@ async function getFilterChanges(_client, { filter }) {
 }
 
 // node_modules/viem/_esm/actions/public/uninstallFilter.js
+init_browser_buffer_global();
 async function uninstallFilter(_client, { filter }) {
   return filter.request({
     method: "eth_uninstallFilter",
@@ -22347,9 +24379,11 @@ function watchContractEvent(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/writeContract.js
+init_browser_buffer_global();
 init_parseAccount();
 
 // node_modules/viem/_esm/errors/account.js
+init_browser_buffer_global();
 init_base();
 var AccountNotFoundError = class extends BaseError2 {
   constructor({ docsPath: docsPath8 } = {}) {
@@ -22377,10 +24411,12 @@ var AccountTypeNotSupportedError = class extends BaseError2 {
 init_encodeFunctionData();
 
 // node_modules/viem/_esm/actions/wallet/sendTransaction.js
+init_browser_buffer_global();
 init_parseAccount();
 init_base();
 
 // node_modules/viem/_esm/utils/chain/assertCurrentChain.js
+init_browser_buffer_global();
 init_chain();
 function assertCurrentChain({ chain: chain2, currentChainId }) {
   if (!chain2)
@@ -22397,6 +24433,7 @@ init_lru();
 init_assertRequest();
 
 // node_modules/viem/_esm/actions/wallet/sendRawTransaction.js
+init_browser_buffer_global();
 async function sendRawTransaction(client2, { serializedTransaction }) {
   return client2.request({
     method: "eth_sendRawTransaction",
@@ -22594,9 +24631,11 @@ async function writeContract(client2, parameters) {
 })(writeContract || (writeContract = {}));
 
 // node_modules/viem/_esm/actions/wallet/waitForCallsStatus.js
+init_browser_buffer_global();
 init_base();
 
 // node_modules/viem/_esm/errors/calls.js
+init_browser_buffer_global();
 init_base();
 var BundleFailedError = class extends BaseError2 {
   constructor(result) {
@@ -22617,6 +24656,7 @@ var BundleFailedError = class extends BaseError2 {
 init_withResolvers();
 
 // node_modules/viem/_esm/utils/promise/withRetry.js
+init_browser_buffer_global();
 init_utils3();
 function withRetry(fn, { delay: delay_ = 100, retryCount = 2, shouldRetry: shouldRetry2 = () => true, signal } = {}) {
   return new Promise((resolve3, reject) => {
@@ -22662,11 +24702,13 @@ function withRetry(fn, { delay: delay_ = 100, retryCount = 2, shouldRetry: shoul
 init_stringify();
 
 // node_modules/viem/_esm/actions/wallet/getCallsStatus.js
+init_browser_buffer_global();
 init_slice();
 init_trim();
 init_fromHex();
 
 // node_modules/viem/_esm/utils/formatters/transactionReceipt.js
+init_browser_buffer_global();
 init_fromHex();
 init_formatter();
 var receiptStatuses = {
@@ -22696,6 +24738,7 @@ function formatTransactionReceipt(transactionReceipt, _) {
 var defineTransactionReceipt = /* @__PURE__ */ defineFormatter("transactionReceipt", formatTransactionReceipt);
 
 // node_modules/viem/_esm/actions/wallet/sendCalls.js
+init_browser_buffer_global();
 init_parseAccount();
 init_base();
 init_rpc();
@@ -22941,9 +24984,11 @@ var WaitForCallsStatusTimeoutError = class extends BaseError2 {
 };
 
 // node_modules/viem/_esm/clients/createClient.js
+init_browser_buffer_global();
 init_parseAccount();
 
 // node_modules/viem/_esm/utils/uid.js
+init_browser_buffer_global();
 var size4 = 256;
 var index = size4;
 var buffer;
@@ -23001,7 +25046,14 @@ function createClient(parameters) {
   return Object.assign(client2, { extend: extend(client2) });
 }
 
+// node_modules/viem/_esm/clients/createPublicClient.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/clients/decorators/public.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/ens/getEnsAddress.js
+init_browser_buffer_global();
 init_abis();
 init_decodeFunctionResult();
 init_encodeFunctionData();
@@ -23012,6 +25064,7 @@ init_trim();
 init_toHex();
 
 // node_modules/viem/_esm/utils/ens/errors.js
+init_browser_buffer_global();
 init_base();
 init_contract();
 function isNullUniversalResolverError(err) {
@@ -23039,12 +25092,14 @@ function isNullUniversalResolverError(err) {
 init_localBatchGatewayRequest();
 
 // node_modules/viem/_esm/utils/ens/namehash.js
+init_browser_buffer_global();
 init_concat();
 init_toBytes();
 init_toHex();
 init_keccak256();
 
 // node_modules/viem/_esm/utils/ens/encodedLabelToLabelhash.js
+init_browser_buffer_global();
 init_isHex();
 function encodedLabelToLabelhash(label) {
   if (label.length !== 66)
@@ -23074,14 +25129,17 @@ function namehash(name2) {
 }
 
 // node_modules/viem/_esm/utils/ens/packetToBytes.js
+init_browser_buffer_global();
 init_toBytes();
 
 // node_modules/viem/_esm/utils/ens/encodeLabelhash.js
+init_browser_buffer_global();
 function encodeLabelhash(hash5) {
   return `[${hash5.slice(2)}]`;
 }
 
 // node_modules/viem/_esm/utils/ens/labelhash.js
+init_browser_buffer_global();
 init_toBytes();
 init_toHex();
 init_keccak256();
@@ -23190,7 +25248,17 @@ function decodeAddress2({ coinType, data, args }) {
   }
 }
 
+// node_modules/viem/_esm/actions/ens/getEnsAvatar.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/ens/avatar/parseAvatarRecord.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/ens/avatar/utils.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/ens.js
+init_browser_buffer_global();
 init_base();
 var EnsAvatarInvalidMetadataError = class extends BaseError2 {
   constructor({ data }) {
@@ -23424,6 +25492,7 @@ async function parseNftAvatarUri(client2, { gatewayUrls, record }) {
 }
 
 // node_modules/viem/_esm/actions/ens/getEnsText.js
+init_browser_buffer_global();
 init_abis();
 init_decodeFunctionResult();
 init_encodeFunctionData();
@@ -23507,6 +25576,7 @@ async function getEnsAvatar(client2, { blockNumber, blockTag, assetGatewayUrls, 
 }
 
 // node_modules/viem/_esm/actions/ens/getEnsName.js
+init_browser_buffer_global();
 init_abis();
 init_getChainContractAddress();
 init_localBatchGatewayRequest();
@@ -23546,6 +25616,7 @@ async function getEnsName(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/ens/getEnsResolver.js
+init_browser_buffer_global();
 init_getChainContractAddress();
 init_toHex();
 async function getEnsResolver(client2, parameters) {
@@ -23592,6 +25663,7 @@ async function getEnsResolver(client2, parameters) {
 init_call();
 
 // node_modules/viem/_esm/actions/public/createAccessList.js
+init_browser_buffer_global();
 init_parseAccount();
 init_base();
 init_toHex();
@@ -23642,6 +25714,7 @@ async function createAccessList(client2, args) {
 }
 
 // node_modules/viem/_esm/actions/public/createBlockFilter.js
+init_browser_buffer_global();
 async function createBlockFilter(client2) {
   const getRequest = createFilterRequestScope(client2, {
     method: "eth_newBlockFilter"
@@ -23653,6 +25726,7 @@ async function createBlockFilter(client2) {
 }
 
 // node_modules/viem/_esm/actions/public/createEventFilter.js
+init_browser_buffer_global();
 init_toHex();
 async function createEventFilter(client2, { address: address2, args, event, events: events_, fromBlock, strict, toBlock } = {}) {
   const events = events_ ?? (event ? [event] : void 0);
@@ -23695,6 +25769,7 @@ async function createEventFilter(client2, { address: address2, args, event, even
 }
 
 // node_modules/viem/_esm/actions/public/createPendingTransactionFilter.js
+init_browser_buffer_global();
 async function createPendingTransactionFilter(client2) {
   const getRequest = createFilterRequestScope(client2, {
     method: "eth_newPendingTransactionFilter"
@@ -23706,6 +25781,7 @@ async function createPendingTransactionFilter(client2) {
 }
 
 // node_modules/viem/_esm/actions/public/getBalance.js
+init_browser_buffer_global();
 init_abis();
 init_decodeFunctionResult();
 init_encodeFunctionData();
@@ -23748,6 +25824,7 @@ async function getBalance(client2, { address: address2, blockHash, blockNumber, 
 }
 
 // node_modules/viem/_esm/actions/public/getBlobBaseFee.js
+init_browser_buffer_global();
 async function getBlobBaseFee(client2) {
   const baseFee = await client2.request({
     method: "eth_blobBaseFee"
@@ -23756,6 +25833,7 @@ async function getBlobBaseFee(client2) {
 }
 
 // node_modules/viem/_esm/actions/public/getBlockReceipts.js
+init_browser_buffer_global();
 init_toHex();
 async function getBlockReceipts(client2, { blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest" } = {}) {
   const blockNumberHex = blockNumber !== void 0 ? numberToHex(blockNumber) : void 0;
@@ -23770,6 +25848,7 @@ async function getBlockReceipts(client2, { blockHash, blockNumber, blockTag = cl
 }
 
 // node_modules/viem/_esm/actions/public/getBlockTransactionCount.js
+init_browser_buffer_global();
 init_fromHex();
 init_toHex();
 async function getBlockTransactionCount(client2, { blockHash, blockNumber, blockTag = "latest" } = {}) {
@@ -23790,6 +25869,7 @@ async function getBlockTransactionCount(client2, { blockHash, blockNumber, block
 }
 
 // node_modules/viem/_esm/actions/public/getCode.js
+init_browser_buffer_global();
 init_formatBlockParameter();
 async function getCode(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
   const block = formatBlockParameter({
@@ -23810,6 +25890,7 @@ async function getCode(client2, { address: address2, blockHash, blockNumber, blo
 }
 
 // node_modules/viem/_esm/actions/public/getDelegation.js
+init_browser_buffer_global();
 init_getAddress();
 init_size();
 init_slice();
@@ -23827,7 +25908,11 @@ async function getDelegation(client2, { address: address2, blockNumber, blockTag
   return getAddress(slice(code, 3, 23));
 }
 
+// node_modules/viem/_esm/actions/public/getEip712Domain.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/eip712.js
+init_browser_buffer_global();
 init_base();
 var Eip712DomainNotFoundError = class extends BaseError2 {
   constructor({ address: address2 }) {
@@ -23892,9 +25977,11 @@ var abi = [
 ];
 
 // node_modules/viem/_esm/actions/public/getFeeHistory.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/utils/formatters/feeHistory.js
+init_browser_buffer_global();
 function formatFeeHistory(feeHistory) {
   return {
     baseFeePerGas: feeHistory.baseFeePerGas.map((value) => BigInt(value)),
@@ -23919,6 +26006,7 @@ async function getFeeHistory(client2, { blockCount, blockNumber, blockTag = "lat
 }
 
 // node_modules/viem/_esm/actions/public/getFilterLogs.js
+init_browser_buffer_global();
 async function getFilterLogs(_client, { filter }) {
   const strict = filter.strict ?? false;
   const logs = await filter.request({
@@ -23936,9 +26024,14 @@ async function getFilterLogs(_client, { filter }) {
 }
 
 // node_modules/viem/_esm/actions/public/getProof.js
+init_browser_buffer_global();
 init_formatBlockParameter();
 
+// node_modules/viem/_esm/utils/formatters/proof.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/index.js
+init_browser_buffer_global();
 init_exports();
 init_parseAccount();
 init_decodeAbiParameters();
@@ -23952,6 +26045,7 @@ init_encodeFunctionData();
 init_encodeFunctionResult();
 
 // node_modules/viem/_esm/utils/abi/encodePacked.js
+init_browser_buffer_global();
 init_abi();
 init_address();
 init_isAddress();
@@ -23967,7 +26061,13 @@ init_getAbiItem();
 init_getAddress();
 
 // node_modules/viem/_esm/utils/address/getContractAddress.js
+init_browser_buffer_global();
 init_concat();
+
+// node_modules/viem/_esm/utils/data/isBytes.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/address/getContractAddress.js
 init_pad();
 init_slice();
 init_toBytes();
@@ -23979,15 +26079,18 @@ init_isAddress();
 init_isAddressEqual();
 
 // node_modules/viem/_esm/utils/authorization/serializeAuthorizationList.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/utils/transaction/serializeTransaction.js
+init_browser_buffer_global();
 init_transaction();
 init_concat();
 init_trim();
 init_toHex();
 
 // node_modules/viem/_esm/utils/transaction/assertTransaction.js
+init_browser_buffer_global();
 init_number();
 init_address();
 init_base();
@@ -24065,6 +26168,7 @@ function assertTransactionLegacy(transaction) {
 }
 
 // node_modules/viem/_esm/utils/transaction/serializeAccessList.js
+init_browser_buffer_global();
 init_address();
 init_transaction();
 init_isAddress();
@@ -24306,6 +26410,7 @@ function serializeAuthorizationList(authorizationList) {
 }
 
 // node_modules/viem/_esm/utils/authorization/verifyAuthorization.js
+init_browser_buffer_global();
 init_getAddress();
 init_isAddressEqual();
 async function verifyAuthorization({ address: address2, authorization, signature }) {
@@ -24316,12 +26421,14 @@ async function verifyAuthorization({ address: address2, authorization, signature
 }
 
 // node_modules/viem/_esm/utils/buildRequest.js
+init_browser_buffer_global();
 init_base();
 init_request();
 init_rpc();
 init_utils3();
 
 // node_modules/viem/_esm/utils/promise/withDedupe.js
+init_browser_buffer_global();
 init_lru();
 var promiseCache2 = /* @__PURE__ */ new LruMap(8192);
 function withDedupe(fn, { enabled = true, id }) {
@@ -24524,6 +26631,7 @@ function hashString(str, seed = 0) {
 init_ccip2();
 
 // node_modules/viem/_esm/utils/ccipTunnel.js
+init_browser_buffer_global();
 init_abis();
 init_solidity();
 init_request();
@@ -24534,6 +26642,7 @@ init_ccip2();
 init_localBatchGatewayRequest();
 
 // node_modules/viem/_esm/utils/chain/defineChain.js
+init_browser_buffer_global();
 function defineChain2(chain2) {
   const chainInstance = {
     formatters: void 0,
@@ -24556,6 +26665,9 @@ function extendSchema() {
   return {};
 }
 
+// node_modules/viem/_esm/utils/chain/extractChain.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/index.js
 init_getChainContractAddress();
 init_concat();
@@ -24568,6 +26680,7 @@ init_fromBytes();
 init_fromHex();
 
 // node_modules/viem/_esm/utils/encoding/fromRlp.js
+init_browser_buffer_global();
 init_base();
 init_encoding();
 init_cursor2();
@@ -24584,13 +26697,21 @@ init_formatter();
 init_transactionRequest();
 
 // node_modules/viem/_esm/utils/hash/isHash.js
+init_browser_buffer_global();
 init_isHex();
 init_size();
 
 // node_modules/viem/_esm/utils/index.js
 init_keccak256();
 
+// node_modules/viem/_esm/utils/hash/ripemd160.js
+init_browser_buffer_global();
+
+// node_modules/viem/node_modules/@noble/hashes/esm/ripemd160.js
+init_browser_buffer_global();
+
 // node_modules/viem/node_modules/@noble/hashes/esm/legacy.js
+init_browser_buffer_global();
 init_md();
 init_utils2();
 
@@ -24600,24 +26721,29 @@ init_toBytes();
 init_toHex();
 
 // node_modules/viem/_esm/utils/hash/toEventHash.js
+init_browser_buffer_global();
 init_toSignatureHash();
 
 // node_modules/viem/_esm/utils/index.js
 init_toEventSelector();
 
 // node_modules/viem/_esm/utils/hash/toEventSignature.js
+init_browser_buffer_global();
 init_toSignature();
 
 // node_modules/viem/_esm/utils/hash/toFunctionHash.js
+init_browser_buffer_global();
 init_toSignatureHash();
 
 // node_modules/viem/_esm/utils/index.js
 init_toFunctionSelector();
 
 // node_modules/viem/_esm/utils/hash/toFunctionSignature.js
+init_browser_buffer_global();
 init_toSignature();
 
 // node_modules/viem/_esm/utils/nonceManager.js
+init_browser_buffer_global();
 init_lru();
 function createNonceManager(parameters) {
   const { source } = parameters;
@@ -24692,11 +26818,16 @@ var nonceManager = /* @__PURE__ */ createNonceManager({
 // node_modules/viem/_esm/utils/index.js
 init_regex2();
 
+// node_modules/viem/_esm/utils/rpc/compat.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/rpc/http.js
+init_browser_buffer_global();
 init_request();
 init_utils3();
 
 // node_modules/viem/_esm/utils/promise/withTimeout.js
+init_browser_buffer_global();
 init_utils3();
 function withTimeout(fn, { errorInstance = new Error("timed out"), timeout, signal }) {
   return new Promise((resolve3, reject) => {
@@ -24732,6 +26863,7 @@ function withTimeout(fn, { errorInstance = new Error("timed out"), timeout, sign
 init_stringify();
 
 // node_modules/viem/_esm/utils/rpc/id.js
+init_browser_buffer_global();
 function createIdStore() {
   return {
     current: 0,
@@ -24853,16 +26985,23 @@ function parseUrl(url_) {
 }
 
 // node_modules/viem/_esm/utils/rpc/webSocket.js
+init_browser_buffer_global();
 init_request();
 
 // node_modules/viem/_esm/utils/rpc/socket.js
+init_browser_buffer_global();
 init_request();
 init_createBatchScheduler();
 
 // node_modules/viem/_esm/utils/signature/hashMessage.js
+init_browser_buffer_global();
 init_keccak256();
 
+// node_modules/viem/_esm/utils/signature/toPrefixedMessage.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/constants/strings.js
+init_browser_buffer_global();
 var presignMessagePrefix = "Ethereum Signed Message:\n";
 
 // node_modules/viem/_esm/utils/signature/toPrefixedMessage.js
@@ -24887,16 +27026,19 @@ function hashMessage(message, to_) {
 }
 
 // node_modules/viem/_esm/utils/signature/hashTypedData.js
+init_browser_buffer_global();
 init_encodeAbiParameters();
 init_concat();
 init_toHex();
 init_keccak256();
 
 // node_modules/viem/_esm/utils/typedData.js
+init_browser_buffer_global();
 init_abi();
 init_address();
 
 // node_modules/viem/_esm/errors/typedData.js
+init_browser_buffer_global();
 init_stringify();
 init_base();
 var InvalidDomainError = class extends BaseError2 {
@@ -25129,7 +27271,19 @@ function encodeField({ types: types2, name: name2, type: type2, value }) {
 }
 
 // node_modules/viem/_esm/utils/signature/isErc6492Signature.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/constants/bytes.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/signature/isErc6492Signature.js
 init_slice();
+
+// node_modules/viem/_esm/utils/signature/isErc8010Signature.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/erc8010/index.js
+init_browser_buffer_global();
 
 // node_modules/ox/_esm/erc8010/SignatureErc8010.js
 var SignatureErc8010_exports = {};
@@ -25143,8 +27297,19 @@ __export(SignatureErc8010_exports, {
   validate: () => validate5,
   wrap: () => wrap
 });
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/core/AbiParameters.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/exports/index.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/errors.js
+init_browser_buffer_global();
 
 // node_modules/abitype/dist/esm/version.js
+init_browser_buffer_global();
 var version4 = "1.2.4";
 
 // node_modules/abitype/dist/esm/errors.js
@@ -25200,7 +27365,23 @@ var BaseError4 = class _BaseError extends Error {
   }
 };
 
+// node_modules/abitype/dist/esm/narrow.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/human-readable/formatAbi.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/human-readable/formatAbiItem.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/human-readable/formatAbiParameters.js
+init_browser_buffer_global();
+
+// node_modules/abitype/dist/esm/human-readable/formatAbiParameter.js
+init_browser_buffer_global();
+
 // node_modules/abitype/dist/esm/regex.js
+init_browser_buffer_global();
 function execTyped2(regex, string) {
   const match = regex.exec(string);
   return match?.groups;
@@ -25264,7 +27445,11 @@ function formatAbiItem3(abiItem) {
   return "receive() external payable";
 }
 
+// node_modules/abitype/dist/esm/human-readable/parseAbi.js
+init_browser_buffer_global();
+
 // node_modules/abitype/dist/esm/human-readable/runtime/signatures.js
+init_browser_buffer_global();
 var errorSignatureRegex2 = /^error (?<name>[a-zA-Z$_][a-zA-Z0-9$_]*)\((?<parameters>.*?)\)$/;
 function isErrorSignature2(signature) {
   return errorSignatureRegex2.test(signature);
@@ -25324,7 +27509,11 @@ var functionModifiers2 = /* @__PURE__ */ new Set([
   "storage"
 ]);
 
+// node_modules/abitype/dist/esm/human-readable/runtime/structs.js
+init_browser_buffer_global();
+
 // node_modules/abitype/dist/esm/human-readable/errors/abiItem.js
+init_browser_buffer_global();
 var InvalidAbiItemError2 = class extends BaseError4 {
   constructor({ signature }) {
     super("Failed to parse ABI item.", {
@@ -25369,6 +27558,7 @@ var UnknownSolidityTypeError2 = class extends BaseError4 {
 };
 
 // node_modules/abitype/dist/esm/human-readable/errors/abiParameter.js
+init_browser_buffer_global();
 var InvalidAbiParametersError2 = class extends BaseError4 {
   constructor({ params }) {
     super("Failed to parse ABI parameters.", {
@@ -25461,6 +27651,7 @@ var InvalidAbiTypeParameterError2 = class extends BaseError4 {
 };
 
 // node_modules/abitype/dist/esm/human-readable/errors/signature.js
+init_browser_buffer_global();
 var InvalidSignatureError2 = class extends BaseError4 {
   constructor({ signature, type: type2 }) {
     super(`Invalid ${type2} signature.`, {
@@ -25503,6 +27694,7 @@ var InvalidStructSignatureError2 = class extends BaseError4 {
 };
 
 // node_modules/abitype/dist/esm/human-readable/errors/struct.js
+init_browser_buffer_global();
 var CircularReferenceError2 = class extends BaseError4 {
   constructor({ type: type2 }) {
     super("Circular reference detected.", {
@@ -25517,7 +27709,11 @@ var CircularReferenceError2 = class extends BaseError4 {
   }
 };
 
+// node_modules/abitype/dist/esm/human-readable/runtime/utils.js
+init_browser_buffer_global();
+
 // node_modules/abitype/dist/esm/human-readable/errors/splitParameters.js
+init_browser_buffer_global();
 var InvalidParenthesisError2 = class extends BaseError4 {
   constructor({ current, depth }) {
     super("Unbalanced parentheses.", {
@@ -25536,6 +27732,7 @@ var InvalidParenthesisError2 = class extends BaseError4 {
 };
 
 // node_modules/abitype/dist/esm/human-readable/runtime/cache.js
+init_browser_buffer_global();
 function getParameterCacheKey2(param, type2, structs) {
   let structKey = "";
   if (structs)
@@ -25877,6 +28074,7 @@ function resolveStructs2(abiParameters = [], structs = {}, ancestors = /* @__PUR
 }
 
 // node_modules/abitype/dist/esm/human-readable/parseAbiItem.js
+init_browser_buffer_global();
 function parseAbiItem2(signature) {
   let abiItem;
   if (typeof signature === "string")
@@ -25897,7 +28095,11 @@ function parseAbiItem2(signature) {
   return abiItem;
 }
 
+// node_modules/abitype/dist/esm/human-readable/parseAbiParameter.js
+init_browser_buffer_global();
+
 // node_modules/abitype/dist/esm/human-readable/parseAbiParameters.js
+init_browser_buffer_global();
 function parseAbiParameters2(params) {
   const abiParameters = [];
   if (typeof params === "string") {
@@ -25926,9 +28128,14 @@ function parseAbiParameters2(params) {
 }
 
 // node_modules/ox/_esm/core/Address.js
+init_browser_buffer_global();
 init_Bytes();
 
+// node_modules/ox/_esm/core/Caches.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/core/internal/lru.js
+init_browser_buffer_global();
 var LruMap2 = class extends Map {
   constructor(size5) {
     super();
@@ -25968,7 +28175,17 @@ var checksum = caches.checksum;
 // node_modules/ox/_esm/core/Address.js
 init_Errors();
 
+// node_modules/ox/_esm/core/Hash.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/hashes/esm/hmac.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/hashes/esm/utils.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/hashes/esm/crypto.js
+init_browser_buffer_global();
 var crypto3 = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : void 0;
 
 // node_modules/ox/node_modules/@noble/hashes/esm/utils.js
@@ -26143,7 +28360,14 @@ var HMAC2 = class extends Hash2 {
 var hmac2 = (hash5, key, message) => new HMAC2(hash5, key).update(message).digest();
 hmac2.create = (hash5, key) => new HMAC2(hash5, key);
 
+// node_modules/ox/node_modules/@noble/hashes/esm/ripemd160.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/hashes/esm/legacy.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/hashes/esm/_md.js
+init_browser_buffer_global();
 function setBigUint642(view, byteOffset, value, isLE3) {
   if (typeof view.setBigUint64 === "function")
     return view.setBigUint64(byteOffset, value, isLE3);
@@ -26299,7 +28523,11 @@ var SHA512_IV2 = /* @__PURE__ */ Uint32Array.from([
   327033209
 ]);
 
+// node_modules/ox/node_modules/@noble/hashes/esm/sha3.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/hashes/esm/_u64.js
+init_browser_buffer_global();
 var U32_MASK642 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 var _32n2 = /* @__PURE__ */ BigInt(32);
 function fromBig2(n, le = false) {
@@ -26519,7 +28747,11 @@ var Keccak2 = class _Keccak extends Hash2 {
 var gen2 = (suffix, blockLen, outputLen) => createHasher3(() => new Keccak2(blockLen, suffix, outputLen));
 var keccak_2562 = /* @__PURE__ */ (() => gen2(1, 136, 256 / 8))();
 
+// node_modules/ox/node_modules/@noble/hashes/esm/sha256.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/hashes/esm/sha2.js
+init_browser_buffer_global();
 var SHA256_K2 = /* @__PURE__ */ Uint32Array.from([
   1116352408,
   1899447441,
@@ -26904,6 +29136,7 @@ function validate3(value) {
 }
 
 // node_modules/ox/_esm/core/PublicKey.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
@@ -27164,11 +29397,13 @@ init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/core/internal/abiParameters.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/core/Solidity.js
+init_browser_buffer_global();
 var arrayRegex2 = /^(.*)\[([0-9]*)\]$/;
 var bytesRegex4 = /^bytes([1-9]|1[0-9]|2[0-9]|3[0-2])?$/;
 var integerRegex4 = /^(u?int)(8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)?$/;
@@ -27659,6 +29894,7 @@ function hasDynamicChild2(param) {
 }
 
 // node_modules/ox/_esm/core/internal/cursor.js
+init_browser_buffer_global();
 init_Errors();
 var staticCursor2 = {
   bytes: new Uint8Array(),
@@ -28064,9 +30300,11 @@ var InvalidTypeError = class extends BaseError3 {
 };
 
 // node_modules/ox/_esm/core/Authorization.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/Rlp.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
@@ -28218,7 +30456,23 @@ function getSizeOfLength2(length) {
   throw new BaseError3("Length is too large.");
 }
 
+// node_modules/ox/_esm/core/Signature.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/curves/esm/secp256k1.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/curves/esm/_shortw_utils.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/curves/esm/abstract/weierstrass.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/curves/esm/abstract/curve.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/curves/esm/abstract/modular.js
+init_browser_buffer_global();
 init_utils5();
 var _0n9 = BigInt(0);
 var _1n9 = BigInt(1);
@@ -29629,6 +31883,7 @@ function createCurve2(curveDef, defHash) {
 }
 
 // node_modules/ox/node_modules/@noble/curves/esm/abstract/hash-to-curve.js
+init_browser_buffer_global();
 init_utils5();
 
 // node_modules/ox/node_modules/@noble/curves/esm/secp256k1.js
@@ -29980,8 +32235,14 @@ init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/core/Secp256k1.js
+init_browser_buffer_global();
 init_Bytes();
 init_Hex();
+
+// node_modules/ox/_esm/core/internal/entropy.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/core/Secp256k1.js
 function recoverAddress2(options) {
   return fromPublicKey(recoverPublicKey2(options));
 }
@@ -30074,28 +32335,41 @@ var InvalidWrappedSignatureError = class extends BaseError3 {
 };
 
 // node_modules/viem/_esm/utils/signature/parseErc6492Signature.js
+init_browser_buffer_global();
 init_decodeAbiParameters();
 
 // node_modules/viem/_esm/utils/signature/parseErc8010Signature.js
+init_browser_buffer_global();
 init_toHex();
 
+// node_modules/viem/_esm/utils/signature/recoverMessageAddress.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/signature/recoverTypedDataAddress.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/signature/serializeErc6492Signature.js
+init_browser_buffer_global();
 init_encodeAbiParameters();
 init_concat();
 init_toBytes();
 
 // node_modules/viem/_esm/utils/signature/serializeErc8010Signature.js
+init_browser_buffer_global();
 init_toBytes();
 
 // node_modules/viem/_esm/utils/signature/verifyHash.js
+init_browser_buffer_global();
 init_getAddress();
 init_isAddressEqual();
 
 // node_modules/viem/_esm/utils/signature/verifyMessage.js
+init_browser_buffer_global();
 init_getAddress();
 init_isAddressEqual();
 
 // node_modules/viem/_esm/utils/signature/verifyTypedData.js
+init_browser_buffer_global();
 init_getAddress();
 init_isAddressEqual();
 
@@ -30104,11 +32378,13 @@ init_stringify();
 init_assertRequest();
 
 // node_modules/viem/_esm/utils/transaction/getSerializedTransactionType.js
+init_browser_buffer_global();
 init_transaction();
 init_slice();
 init_fromHex();
 
 // node_modules/viem/_esm/utils/transaction/parseTransaction.js
+init_browser_buffer_global();
 init_address();
 init_transaction();
 init_isAddress();
@@ -30123,9 +32399,14 @@ init_formatGwei();
 init_formatUnits();
 
 // node_modules/viem/_esm/utils/unit/parseEther.js
+init_browser_buffer_global();
 init_unit();
 
+// node_modules/viem/_esm/utils/unit/parseUnits.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/errors/unit.js
+init_browser_buffer_global();
 init_base();
 var InvalidDecimalNumberError = class extends BaseError2 {
   constructor({ value }) {
@@ -30176,6 +32457,7 @@ function parseEther(ether, unit = "wei") {
 }
 
 // node_modules/viem/_esm/utils/unit/parseGwei.js
+init_browser_buffer_global();
 init_unit();
 
 // node_modules/viem/_esm/utils/formatters/proof.js
@@ -30210,6 +32492,7 @@ async function getProof(client2, { address: address2, blockHash, blockNumber, bl
 }
 
 // node_modules/viem/_esm/actions/public/getStorageAt.js
+init_browser_buffer_global();
 init_formatBlockParameter();
 async function getStorageAt(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical, slot }) {
   const block = formatBlockParameter({
@@ -30226,6 +32509,7 @@ async function getStorageAt(client2, { address: address2, blockHash, blockNumber
 }
 
 // node_modules/viem/_esm/actions/public/getTransaction.js
+init_browser_buffer_global();
 init_transaction();
 init_toHex();
 async function getTransaction(client2, { blockHash, blockNumber, blockTag: blockTag_, hash: hash5, index: index2, sender, nonce: nonce2 }) {
@@ -30266,6 +32550,7 @@ async function getTransaction(client2, { blockHash, blockNumber, blockTag: block
 }
 
 // node_modules/viem/_esm/actions/public/getTransactionConfirmations.js
+init_browser_buffer_global();
 async function getTransactionConfirmations(client2, { hash: hash5, transactionReceipt }) {
   const [blockNumber, transaction] = await Promise.all([
     getAction(client2, getBlockNumber, "getBlockNumber")({}),
@@ -30278,6 +32563,7 @@ async function getTransactionConfirmations(client2, { hash: hash5, transactionRe
 }
 
 // node_modules/viem/_esm/actions/public/getTransactionReceipt.js
+init_browser_buffer_global();
 init_transaction();
 async function getTransactionReceipt(client2, { hash: hash5 }) {
   const receipt = await client2.request({
@@ -30291,6 +32577,7 @@ async function getTransactionReceipt(client2, { hash: hash5 }) {
 }
 
 // node_modules/viem/_esm/actions/public/multicall.js
+init_browser_buffer_global();
 init_abis();
 init_contracts();
 init_abi();
@@ -30430,6 +32717,7 @@ async function multicall(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/simulateBlocks.js
+init_browser_buffer_global();
 init_BlockOverrides();
 init_parseAccount();
 init_abi();
@@ -30530,11 +32818,19 @@ async function simulateBlocks(client2, parameters) {
   }
 }
 
+// node_modules/viem/_esm/actions/public/simulateCalls.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/core/AbiConstructor.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/core/AbiItem.js
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/core/internal/abiItem.js
+init_browser_buffer_global();
 init_Errors();
 function normalizeSignature2(signature) {
   let active = true;
@@ -30823,6 +33119,7 @@ function fromAbi2(abi2) {
 }
 
 // node_modules/ox/_esm/core/AbiFunction.js
+init_browser_buffer_global();
 init_Hex();
 function encodeData2(...parameters) {
   const [abiFunction, args = []] = (() => {
@@ -30858,6 +33155,7 @@ function getSelector2(abiItem) {
 init_parseAccount();
 
 // node_modules/viem/_esm/constants/address.js
+init_browser_buffer_global();
 var ethAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 var zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -31061,6 +33359,12 @@ async function simulateCalls(client2, parameters) {
   };
 }
 
+// node_modules/viem/_esm/actions/public/verifyHash.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/erc6492/index.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/erc6492/SignatureErc6492.js
 var SignatureErc6492_exports = {};
 __export(SignatureErc6492_exports, {
@@ -31074,6 +33378,7 @@ __export(SignatureErc6492_exports, {
   validate: () => validate6,
   wrap: () => wrap2
 });
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 var magicBytes2 = "0x6492649264926492649264926492649264926492649264926492649264926492";
@@ -31178,6 +33483,7 @@ init_fromHex();
 init_toHex();
 
 // node_modules/viem/_esm/utils/signature/serializeSignature.js
+init_browser_buffer_global();
 init_secp256k1();
 init_fromHex();
 init_toBytes();
@@ -31367,6 +33673,7 @@ var VerificationError = class extends Error {
 };
 
 // node_modules/viem/_esm/actions/public/verifyMessage.js
+init_browser_buffer_global();
 async function verifyMessage2(client2, { address: address2, message, factory, factoryData, signature, ...callRequest }) {
   const hash5 = hashMessage(message);
   return getAction(client2, verifyHash2, "verifyHash")({
@@ -31380,6 +33687,7 @@ async function verifyMessage2(client2, { address: address2, message, factory, fa
 }
 
 // node_modules/viem/_esm/actions/public/verifyTypedData.js
+init_browser_buffer_global();
 async function verifyTypedData2(client2, parameters) {
   const { address: address2, factory, factoryData, signature, message, primaryType, types: types2, domain, ...callRequest } = parameters;
   const hash5 = hashTypedData({ message, primaryType, types: types2, domain });
@@ -31394,11 +33702,13 @@ async function verifyTypedData2(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/waitForTransactionReceipt.js
+init_browser_buffer_global();
 init_transaction();
 init_withResolvers();
 init_stringify();
 
 // node_modules/viem/_esm/actions/public/watchBlockNumber.js
+init_browser_buffer_global();
 init_fromHex();
 init_stringify();
 function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, onBlockNumber, onError, poll: poll_, pollingInterval = client2.pollingInterval }) {
@@ -31625,6 +33935,7 @@ async function waitForTransactionReceipt(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/public/watchBlocks.js
+init_browser_buffer_global();
 init_stringify();
 function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "latest", emitMissed = false, emitOnBegin = false, onBlock, onError, includeTransactions: includeTransactions_, poll: poll_, pollingInterval = client2.pollingInterval }) {
   const enablePolling = (() => {
@@ -31747,6 +34058,7 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
 }
 
 // node_modules/viem/_esm/actions/public/watchEvent.js
+init_browser_buffer_global();
 init_abi();
 init_rpc();
 init_stringify();
@@ -31913,6 +34225,7 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
 }
 
 // node_modules/viem/_esm/actions/public/watchPendingTransactions.js
+init_browser_buffer_global();
 init_stringify();
 function watchPendingTransactions(client2, { batch = true, onError, onTransactions, poll: poll_, pollingInterval = client2.pollingInterval }) {
   const enablePolling = typeof poll_ !== "undefined" ? poll_ : client2.transport.type !== "webSocket" && client2.transport.type !== "ipc";
@@ -31987,7 +34300,11 @@ function watchPendingTransactions(client2, { batch = true, onError, onTransactio
   return enablePolling ? pollPendingTransactions() : subscribePendingTransactions();
 }
 
+// node_modules/viem/_esm/actions/siwe/verifySiweMessage.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/siwe/parseSiweMessage.js
+init_browser_buffer_global();
 function parseSiweMessage(message) {
   const { scheme, statement, ...prefix } = message.match(prefixRegex)?.groups ?? {};
   const { chainId, expirationTime, issuedAt, notBefore, requestId, ...suffix } = message.match(suffixRegex)?.groups ?? {};
@@ -32009,6 +34326,7 @@ var prefixRegex = /^(?:(?<scheme>[a-zA-Z][a-zA-Z0-9+-.]*):\/\/)?(?<domain>[a-zA-
 var suffixRegex = /(?:URI: (?<uri>.+))\n(?:Version: (?<version>.+))\n(?:Chain ID: (?<chainId>\d+))\n(?:Nonce: (?<nonce>[a-zA-Z0-9]+))\n(?:Issued At: (?<issuedAt>.+))(?:\nExpiration Time: (?<expirationTime>.+))?(?:\nNot Before: (?<notBefore>.+))?(?:\nRequest ID: (?<requestId>.+))?/;
 
 // node_modules/viem/_esm/utils/siwe/validateSiweMessage.js
+init_browser_buffer_global();
 init_isAddress();
 init_isAddressEqual();
 function validateSiweMessage(parameters) {
@@ -32062,6 +34380,7 @@ async function verifySiweMessage(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/sendRawTransactionSync.js
+init_browser_buffer_global();
 init_transaction();
 async function sendRawTransactionSync(client2, { serializedTransaction, throwOnReceiptRevert, timeout }) {
   const receipt = await client2.request({
@@ -32152,41 +34471,122 @@ function createPublicClient(parameters) {
   return client2.extend(publicActions);
 }
 
+// node_modules/viem/_esm/clients/createTestClient.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/clients/decorators/test.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/dropTransaction.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/dumpState.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/getAutomine.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/getTxpoolContent.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/test/getTxpoolStatus.js
+init_browser_buffer_global();
 init_fromHex();
 
+// node_modules/viem/_esm/actions/test/impersonateAccount.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/test/increaseTime.js
+init_browser_buffer_global();
 init_toHex();
+
+// node_modules/viem/_esm/actions/test/inspectTxpool.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/loadState.js
+init_browser_buffer_global();
 
 // node_modules/viem/_esm/actions/test/mine.js
+init_browser_buffer_global();
 init_toHex();
 
+// node_modules/viem/_esm/actions/test/removeBlockTimestampInterval.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/reset.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/revert.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/test/sendUnsignedTransaction.js
+init_browser_buffer_global();
 init_extract();
 init_transactionRequest();
 
+// node_modules/viem/_esm/actions/test/setAutomine.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/test/setBalance.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/actions/test/setBlockGasLimit.js
+init_browser_buffer_global();
 init_toHex();
 
+// node_modules/viem/_esm/actions/test/setBlockTimestampInterval.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/setCode.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/setCoinbase.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/setIntervalMining.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/setLoggingEnabled.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/test/setMinGasPrice.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/actions/test/setNextBlockBaseFeePerGas.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/actions/test/setNextBlockTimestamp.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/actions/test/setNonce.js
+init_browser_buffer_global();
 init_toHex();
+
+// node_modules/viem/_esm/actions/test/setRpcUrl.js
+init_browser_buffer_global();
 
 // node_modules/viem/_esm/actions/test/setStorageAt.js
+init_browser_buffer_global();
 init_toHex();
 
+// node_modules/viem/_esm/actions/test/snapshot.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/actions/test/stopImpersonatingAccount.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/clients/createWalletClient.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/clients/decorators/wallet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/actions/wallet/addChain.js
+init_browser_buffer_global();
 init_toHex();
 async function addChain(client2, { chain: chain2 }) {
   const { id, name: name2, nativeCurrency, rpcUrls, blockExplorers } = chain2;
@@ -32205,6 +34605,7 @@ async function addChain(client2, { chain: chain2 }) {
 }
 
 // node_modules/viem/_esm/actions/wallet/deployContract.js
+init_browser_buffer_global();
 init_encodeDeployData();
 function deployContract(walletClient, parameters) {
   const { abi: abi2, args, bytecode, ...request } = parameters;
@@ -32217,6 +34618,7 @@ function deployContract(walletClient, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/getAddresses.js
+init_browser_buffer_global();
 init_getAddress();
 async function getAddresses(client2) {
   if (client2.account?.type === "local")
@@ -32226,6 +34628,7 @@ async function getAddresses(client2) {
 }
 
 // node_modules/viem/_esm/actions/wallet/getCapabilities.js
+init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
 async function getCapabilities(client2, parameters = {}) {
@@ -32249,12 +34652,14 @@ async function getCapabilities(client2, parameters = {}) {
 }
 
 // node_modules/viem/_esm/actions/wallet/getPermissions.js
+init_browser_buffer_global();
 async function getPermissions(client2) {
   const permissions = await client2.request({ method: "wallet_getPermissions" }, { dedupe: true });
   return permissions;
 }
 
 // node_modules/viem/_esm/actions/wallet/prepareAuthorization.js
+init_browser_buffer_global();
 init_parseAccount();
 init_isAddressEqual();
 async function prepareAuthorization(client2, parameters) {
@@ -32290,6 +34695,7 @@ async function prepareAuthorization(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/requestAddresses.js
+init_browser_buffer_global();
 init_getAddress();
 async function requestAddresses(client2) {
   const addresses = await client2.request({ method: "eth_requestAccounts" }, { dedupe: true, retryCount: 0 });
@@ -32297,6 +34703,7 @@ async function requestAddresses(client2) {
 }
 
 // node_modules/viem/_esm/actions/wallet/requestPermissions.js
+init_browser_buffer_global();
 async function requestPermissions(client2, permissions) {
   return client2.request({
     method: "wallet_requestPermissions",
@@ -32305,6 +34712,7 @@ async function requestPermissions(client2, permissions) {
 }
 
 // node_modules/viem/_esm/actions/wallet/sendCallsSync.js
+init_browser_buffer_global();
 async function sendCallsSync(client2, parameters) {
   const { chain: chain2 = client2.chain } = parameters;
   const timeout = parameters.timeout ?? Math.max((chain2?.blockTime ?? 0) * 3, 5e3);
@@ -32318,6 +34726,7 @@ async function sendCallsSync(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/sendTransactionSync.js
+init_browser_buffer_global();
 init_parseAccount();
 init_base();
 init_transaction();
@@ -32491,6 +34900,7 @@ async function sendTransactionSync(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/showCallsStatus.js
+init_browser_buffer_global();
 async function showCallsStatus(client2, parameters) {
   const { id } = parameters;
   await client2.request({
@@ -32501,6 +34911,7 @@ async function showCallsStatus(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/signAuthorization.js
+init_browser_buffer_global();
 init_parseAccount();
 async function signAuthorization(client2, parameters) {
   const { account: account_ = client2.account } = parameters;
@@ -32522,6 +34933,7 @@ async function signAuthorization(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/signMessage.js
+init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
 async function signMessage(client2, { account: account_ = client2.account, message }) {
@@ -32546,6 +34958,7 @@ async function signMessage(client2, { account: account_ = client2.account, messa
 }
 
 // node_modules/viem/_esm/actions/wallet/signTransaction.js
+init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
 init_transactionRequest();
@@ -32591,6 +35004,7 @@ async function signTransaction(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/signTypedData.js
+init_browser_buffer_global();
 init_parseAccount();
 async function signTypedData(client2, parameters) {
   const { account: account_ = client2.account, domain, message, primaryType } = parameters;
@@ -32614,6 +35028,7 @@ async function signTypedData(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/wallet/switchChain.js
+init_browser_buffer_global();
 init_toHex();
 async function switchChain(client2, { id }) {
   await client2.request({
@@ -32627,6 +35042,7 @@ async function switchChain(client2, { id }) {
 }
 
 // node_modules/viem/_esm/actions/wallet/watchAsset.js
+init_browser_buffer_global();
 async function watchAsset(client2, params) {
   const added = await client2.request({
     method: "wallet_watchAsset",
@@ -32636,6 +35052,7 @@ async function watchAsset(client2, params) {
 }
 
 // node_modules/viem/_esm/actions/wallet/writeContractSync.js
+init_browser_buffer_global();
 async function writeContractSync(client2, parameters) {
   return writeContract.internal(client2, sendTransactionSync, "sendTransactionSync", parameters);
 }
@@ -32688,6 +35105,7 @@ function createWalletClient(parameters) {
 }
 
 // node_modules/viem/_esm/clients/transports/createTransport.js
+init_browser_buffer_global();
 function createTransport({ key, methods, name: name2, request, retryCount = 3, retryDelay = 150, timeout, type: type2 }, value) {
   const uid2 = uid();
   return {
@@ -32707,6 +35125,7 @@ function createTransport({ key, methods, name: name2, request, retryCount = 3, r
 }
 
 // node_modules/viem/_esm/clients/transports/custom.js
+init_browser_buffer_global();
 function custom2(provider, config = {}) {
   const { key = "custom", methods, name: name2 = "Custom Provider", retryDelay } = config;
   return ({ retryCount: defaultRetryCount }) => createTransport({
@@ -32721,6 +35140,7 @@ function custom2(provider, config = {}) {
 }
 
 // node_modules/viem/_esm/clients/transports/fallback.js
+init_browser_buffer_global();
 init_node();
 init_rpc();
 function fallback(transports_, config = {}) {
@@ -32856,9 +35276,11 @@ function rankTransports({ chain: chain2, interval = 4e3, onTransports, ping, sam
 }
 
 // node_modules/viem/_esm/clients/transports/http.js
+init_browser_buffer_global();
 init_request();
 
 // node_modules/viem/_esm/errors/transport.js
+init_browser_buffer_global();
 init_base();
 var UrlRequiredError = class extends BaseError2 {
   constructor() {
@@ -32947,6 +35369,7 @@ function http(url, config = {}) {
 }
 
 // node_modules/viem/_esm/clients/transports/webSocket.js
+init_browser_buffer_global();
 init_request();
 
 // node_modules/viem/_esm/index.js
@@ -32966,9 +35389,15 @@ init_request();
 init_rpc();
 init_stateOverride();
 init_transaction();
+
+// node_modules/viem/_esm/types/eip1193.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/index.js
 init_decodeAbiParameters();
 
 // node_modules/viem/_esm/utils/abi/decodeDeployData.js
+init_browser_buffer_global();
 init_abi();
 init_decodeAbiParameters();
 
@@ -32988,9 +35417,13 @@ init_isAddress();
 init_isAddressEqual();
 
 // node_modules/viem/_esm/utils/blob/fromBlobs.js
+init_browser_buffer_global();
 init_cursor2();
 init_toBytes();
 init_toHex();
+
+// node_modules/viem/_esm/utils/blob/sidecarsToVersionedHashes.js
+init_browser_buffer_global();
 
 // node_modules/viem/_esm/index.js
 init_ccip2();
@@ -33005,31 +35438,48 @@ init_fromBytes();
 init_fromHex();
 init_toBytes();
 init_toHex();
+
+// node_modules/viem/_esm/utils/ens/toCoinType.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/index.js
 init_transactionRequest();
 init_keccak256();
 init_toEventSelector();
 init_toFunctionSelector();
 
+// node_modules/viem/_esm/utils/kzg/defineKzg.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/utils/kzg/setupKzg.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/utils/signature/compactSignatureToSignature.js
+init_browser_buffer_global();
 init_toBytes();
 init_toHex();
 
 // node_modules/viem/_esm/utils/signature/parseCompactSignature.js
+init_browser_buffer_global();
 init_secp256k1();
 init_toHex();
 
 // node_modules/viem/_esm/utils/signature/parseSignature.js
+init_browser_buffer_global();
 init_secp256k1();
 init_toHex();
 
 // node_modules/viem/_esm/utils/signature/recoverTransactionAddress.js
+init_browser_buffer_global();
 init_keccak256();
 
 // node_modules/viem/_esm/utils/signature/serializeCompactSignature.js
+init_browser_buffer_global();
 init_secp256k1();
 init_fromHex();
 
 // node_modules/viem/_esm/utils/signature/signatureToCompactSignature.js
+init_browser_buffer_global();
 init_toBytes();
 init_toHex();
 
@@ -33040,7 +35490,14 @@ init_formatEther();
 init_formatGwei();
 init_formatUnits();
 
+// node_modules/@ethersproject/bytes/lib.esm/index.js
+init_browser_buffer_global();
+
+// node_modules/@ethersproject/logger/lib.esm/index.js
+init_browser_buffer_global();
+
 // node_modules/@ethersproject/logger/lib.esm/_version.js
+init_browser_buffer_global();
 var version5 = "logger/5.8.0";
 
 // node_modules/@ethersproject/logger/lib.esm/index.js
@@ -33332,6 +35789,7 @@ Logger.errors = ErrorCode;
 Logger.levels = LogLevel;
 
 // node_modules/@ethersproject/bytes/lib.esm/_version.js
+init_browser_buffer_global();
 var version6 = "bytes/5.8.0";
 
 // node_modules/@ethersproject/bytes/lib.esm/index.js
@@ -33496,10 +35954,18 @@ function hexZeroPad(value, length) {
   return value;
 }
 
+// node_modules/@ethersproject/address/lib.esm/index.js
+init_browser_buffer_global();
+
+// node_modules/@ethersproject/bignumber/lib.esm/index.js
+init_browser_buffer_global();
+
 // node_modules/@ethersproject/bignumber/lib.esm/bignumber.js
+init_browser_buffer_global();
 var import_bn = __toESM(require_bn());
 
 // node_modules/@ethersproject/bignumber/lib.esm/_version.js
+init_browser_buffer_global();
 var version7 = "bignumber/5.8.0";
 
 // node_modules/@ethersproject/bignumber/lib.esm/bignumber.js
@@ -33766,6 +36232,7 @@ function _base36To16(value) {
 }
 
 // node_modules/@ethersproject/bignumber/lib.esm/fixednumber.js
+init_browser_buffer_global();
 var logger3 = new Logger(version7);
 var _constructorGuard2 = {};
 var Zero = BigNumber.from(0);
@@ -34107,18 +36574,24 @@ var ONE = FixedNumber.from(1);
 var BUMP = FixedNumber.from("0.5");
 
 // node_modules/@ethersproject/keccak256/lib.esm/index.js
+init_browser_buffer_global();
 var import_js_sha3 = __toESM(require_sha3());
 function keccak2563(data) {
   return "0x" + import_js_sha3.default.keccak_256(arrayify(data));
 }
 
+// node_modules/@ethersproject/rlp/lib.esm/index.js
+init_browser_buffer_global();
+
 // node_modules/@ethersproject/rlp/lib.esm/_version.js
+init_browser_buffer_global();
 var version8 = "rlp/5.8.0";
 
 // node_modules/@ethersproject/rlp/lib.esm/index.js
 var logger4 = new Logger(version8);
 
 // node_modules/@ethersproject/address/lib.esm/_version.js
+init_browser_buffer_global();
 var version9 = "address/5.8.0";
 
 // node_modules/@ethersproject/address/lib.esm/index.js
@@ -34203,7 +36676,11 @@ function getAddress2(address2) {
   return result;
 }
 
+// node_modules/bs58/src/esm/index.js
+init_browser_buffer_global();
+
 // node_modules/base-x/src/esm/index.js
+init_browser_buffer_global();
 function base(ALPHABET2) {
   if (ALPHABET2.length >= 255) {
     throw new TypeError("Alphabet too long");
@@ -34338,19 +36815,52 @@ var esm_default = base;
 var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 var esm_default2 = esm_default(ALPHABET);
 
+// node_modules/@ethersproject/units/lib.esm/index.js
+init_browser_buffer_global();
+
 // node_modules/@ethersproject/units/lib.esm/_version.js
+init_browser_buffer_global();
 var version10 = "units/5.8.0";
 
 // node_modules/@ethersproject/units/lib.esm/index.js
 var logger6 = new Logger(version10);
 
+// node_modules/viem/_esm/chains/index.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/0g.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/0gGalileoTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/0gMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/0gTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/5ireChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/abey.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/abstract.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/zksync/chainConfig.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/zksync/formatters.js
+init_browser_buffer_global();
 init_fromHex();
 init_toBytes();
 init_toHex();
 init_transactionRequest();
 
 // node_modules/viem/_esm/zksync/constants/number.js
+init_browser_buffer_global();
 init_number();
 var gasPerPubdataDefault = 50000n;
 var maxBytecodeSize = maxUint16 * 32n;
@@ -34455,16 +36965,19 @@ var formatters = {
 };
 
 // node_modules/viem/_esm/zksync/serializers.js
+init_browser_buffer_global();
 init_concat();
 init_toHex();
 
 // node_modules/viem/_esm/zksync/utils/assertEip712Transaction.js
+init_browser_buffer_global();
 init_address();
 init_base();
 init_chain();
 init_isAddress();
 
 // node_modules/viem/_esm/zksync/errors/transaction.js
+init_browser_buffer_global();
 init_base();
 var InvalidEip712TransactionError = class extends BaseError2 {
   constructor() {
@@ -34479,6 +36992,7 @@ var InvalidEip712TransactionError = class extends BaseError2 {
 };
 
 // node_modules/viem/_esm/zksync/utils/isEip712Transaction.js
+init_browser_buffer_global();
 function isEIP712Transaction(transaction) {
   if (transaction.type === "eip712")
     return true;
@@ -34546,13 +37060,16 @@ function serializeTransactionEIP712(transaction) {
 }
 
 // node_modules/viem/_esm/zksync/utils/getEip712Domain.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/zksync/utils/hashBytecode.js
+init_browser_buffer_global();
 init_pad();
 init_toBytes();
 
 // node_modules/viem/_esm/zksync/errors/bytecode.js
+init_browser_buffer_global();
 init_base();
 var BytecodeLengthExceedsMaxSizeError = class extends BaseError2 {
   constructor({ givenLength, maxBytecodeSize: maxBytecodeSize2 }) {
@@ -34698,6 +37215,7 @@ var abstract = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/abstractTestnet.js
+init_browser_buffer_global();
 var abstractTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   blockTime: 200,
@@ -34734,7 +37252,47 @@ var abstractTestnet = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/acala.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/acria.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/adf.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/adi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/agungTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/aioz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/alephZero.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/alephZeroTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/alienX.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/alienXHalTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/alpenTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ancient8.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/op-stack/chainConfig.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/op-stack/contracts.js
+init_browser_buffer_global();
 var contracts = {
   gasPriceOracle: { address: "0x420000000000000000000000000000000000000F" },
   l1Block: { address: "0x4200000000000000000000000000000000000015" },
@@ -34749,6 +37307,7 @@ var contracts = {
 };
 
 // node_modules/viem/_esm/op-stack/formatters.js
+init_browser_buffer_global();
 init_fromHex();
 var formatters2 = {
   block: /* @__PURE__ */ defineBlock({
@@ -34796,6 +37355,7 @@ var formatters2 = {
 };
 
 // node_modules/viem/_esm/op-stack/serializers.js
+init_browser_buffer_global();
 init_address();
 init_isAddress();
 init_concat();
@@ -34892,6 +37452,7 @@ var ancient8 = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/ancient8Sepolia.js
+init_browser_buffer_global();
 var sourceId2 = 11155111;
 var ancient8Sepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -34934,7 +37495,20 @@ var ancient8Sepolia = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/anvil.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/apeChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/apexTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/apollo.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/arbitrum.js
+init_browser_buffer_global();
 var arbitrum = /* @__PURE__ */ defineChain2({
   id: 42161,
   name: "Arbitrum One",
@@ -34960,7 +37534,14 @@ var arbitrum = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/arbitrumGoerli.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/arbitrumNova.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/arbitrumSepolia.js
+init_browser_buffer_global();
 var arbitrumSepolia = /* @__PURE__ */ defineChain2({
   id: 421614,
   name: "Arbitrum Sepolia",
@@ -34991,7 +37572,65 @@ var arbitrumSepolia = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/arc.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/arcTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/arenaz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/areonNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/areonNetworkTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/areum.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/artelaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/arthera.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/artheraTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/assetChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/assetChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/astar.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/astarZkEVM.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/astarZkyoto.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/atletaOlympia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/aurora.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/auroraTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/auroria.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/autheoTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/avalanche.js
+init_browser_buffer_global();
 var avalanche = /* @__PURE__ */ defineChain2({
   id: 43114,
   name: "Avalanche",
@@ -35020,6 +37659,7 @@ var avalanche = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/avalancheFuji.js
+init_browser_buffer_global();
 var avalancheFuji = /* @__PURE__ */ defineChain2({
   id: 43113,
   name: "Avalanche Fuji",
@@ -35047,7 +37687,17 @@ var avalancheFuji = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/b3.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/b3Sepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bahamut.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/base.js
+init_browser_buffer_global();
 var sourceId3 = 1;
 var base2 = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35107,7 +37757,11 @@ var basePreconf = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/basecampTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/baseGoerli.js
+init_browser_buffer_global();
 var sourceId4 = 5;
 var baseGoerli = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35151,6 +37805,7 @@ var baseGoerli = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/baseSepolia.js
+init_browser_buffer_global();
 var sourceId5 = 11155111;
 var baseSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35213,6 +37868,7 @@ var baseSepoliaPreconf = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/battlechainTestnet.js
+init_browser_buffer_global();
 var battlechainTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 627,
@@ -35234,7 +37890,65 @@ var battlechainTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/beam.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/beamTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bearNetworkChainMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bearNetworkChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/berachain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/berachainBepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/berachainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/berachainTestnetbArtio.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bevmMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bifrost.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/birdlayer.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitgert.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitkub.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitkubTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitlayer.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitlayerTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitrock.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitTorrent.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bitTorrentTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/blast.js
+init_browser_buffer_global();
 var sourceId6 = 1;
 var blast = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35283,7 +37997,11 @@ var blast = /* @__PURE__ */ defineChain2({
   sourceId: sourceId6
 });
 
+// node_modules/viem/_esm/chains/definitions/blastSepolia.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/bob.js
+init_browser_buffer_global();
 var sourceId7 = 1;
 var bob = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35328,7 +38046,14 @@ var bob = /* @__PURE__ */ defineChain2({
   sourceId: sourceId7
 });
 
+// node_modules/viem/_esm/chains/definitions/boba.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bobaSepolia.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/bobSepolia.js
+init_browser_buffer_global();
 var sourceId8 = 11155111;
 var bobSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35374,7 +38099,68 @@ var bobSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId8
 });
 
+// node_modules/viem/_esm/chains/definitions/boolBetaMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/botanix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/botanixTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bounceBit.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bounceBitTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bronos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bronosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bsc.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bscGreenfield.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bscTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bsquared.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bsquaredTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/btr.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/btrTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bxn.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/bxnTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cannon.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/canto.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/celo.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/celo/chainConfig.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/celo/fees.js
+init_browser_buffer_global();
 var fees = {
   /*
      * Estimates the fees per gas for a transaction.
@@ -35415,10 +38201,12 @@ async function estimateMaxPriorityFeePerGasInFeeCurrency(client2, feeCurrency) {
 }
 
 // node_modules/viem/_esm/celo/formatters.js
+init_browser_buffer_global();
 init_fromHex();
 init_transactionRequest();
 
 // node_modules/viem/_esm/celo/utils.js
+init_browser_buffer_global();
 init_trim();
 function isEmpty(value) {
   return value === 0 || value === 0n || value === void 0 || value === null || value === "0" || value === "" || typeof value === "string" && (trim(value).toLowerCase() === "0x" || trim(value).toLowerCase() === "0x00");
@@ -35492,6 +38280,7 @@ var formatters3 = {
 };
 
 // node_modules/viem/_esm/celo/serializers.js
+init_browser_buffer_global();
 init_number();
 init_address();
 init_base();
@@ -35589,6 +38378,7 @@ var celo = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/celoAlfajores.js
+init_browser_buffer_global();
 var sourceId9 = 17e3;
 var celoAlfajores = /* @__PURE__ */ defineChain2({
   ...chainConfig3,
@@ -35646,6 +38436,7 @@ var celoAlfajores = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/celoSepolia.js
+init_browser_buffer_global();
 var sourceId10 = 11155111;
 var celoSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig3,
@@ -35696,7 +38487,29 @@ var celoSepolia = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/chang.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/chiliz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/chips.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/citrate.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/citrea.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/citreaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/classic.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/codex.js
+init_browser_buffer_global();
 var sourceId11 = 1;
 var codex = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35740,6 +38553,7 @@ var codex = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/codexTestnet.js
+init_browser_buffer_global();
 var sourceId12 = 11155111;
 var codexTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -35783,7 +38597,95 @@ var codexTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/coinbit.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/coinex.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/confluxESpace.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/confluxESpaceTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/coreDao.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/coreTestnet1.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/coreTestnet2.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/corn.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cornTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cpchain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/crab.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/creatorTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/creditCoin3Devnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/creditCoin3Mainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/creditCoin3Testnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cronos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cronosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cronoszkEVM.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cronoszkEVMTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/crossbell.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/crossfi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/curtis.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cyber.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/cyberTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dailyNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dailyNetworkTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/darwinia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/datahavenTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dbkchain.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/dchain.js
+init_browser_buffer_global();
 var dchain = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
   id: 2716446429837e3,
@@ -35807,6 +38709,7 @@ var dchain = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/dchainTestnet.js
+init_browser_buffer_global();
 var dchainTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
   id: 2713017997578e3,
@@ -35832,10 +38735,99 @@ var dchainTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/defichainEvm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/defichainEvmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/degen.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dfk.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/diode.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/disChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dodochainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dogechain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/domaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/donatuz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dosChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dosChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dreyerxMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dreyerxTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/utils.js
+init_browser_buffer_global();
 init_getChainContractAddress();
 
+// node_modules/viem/_esm/chains/definitions/dustboyIoT.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/dymension.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eden.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edexa.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edexaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edgeless.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edgelessTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edgeware.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/edgewareTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eduChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eduChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/elastos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/elastosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/electroneum.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/electroneumTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/elysiumTestnet.js
+init_browser_buffer_global();
 var elysiumTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
   id: 1338,
@@ -35859,7 +38851,122 @@ var elysiumTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/energy.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eni.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eniTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/enuls.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eon.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/eteria.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/etherlink.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/etherlinkShadownetTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/etherlinkTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ethernity.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/etp.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/evmos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/evmosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/excelonMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/expanse.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/exSat.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/exSatTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fantom.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fantomSonicTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fantomTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fibo.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/filecoin.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/filecoinCalibration.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/filecoinHyperspace.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flame.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flare.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flareTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flowMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flowPreviewnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/flowTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluence.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluenceStage.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluenceTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluent.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluentDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fluentTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/form.js
+init_browser_buffer_global();
 var sourceId13 = 1;
 var form = /* @__PURE__ */ defineChain2({
   id: 478,
@@ -35915,7 +39022,11 @@ var form = /* @__PURE__ */ defineChain2({
   sourceId: sourceId13
 });
 
+// node_modules/viem/_esm/chains/definitions/forma.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/formTestnet.js
+init_browser_buffer_global();
 var sourceId14 = 11155111;
 var formTestnet = /* @__PURE__ */ defineChain2({
   id: 132902,
@@ -35972,7 +39083,14 @@ var formTestnet = /* @__PURE__ */ defineChain2({
   sourceId: sourceId14
 });
 
+// node_modules/viem/_esm/chains/definitions/forta.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/foundry.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/fraxtal.js
+init_browser_buffer_global();
 var sourceId15 = 1;
 var fraxtal = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36018,6 +39136,7 @@ var fraxtal = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/fraxtalTestnet.js
+init_browser_buffer_global();
 var sourceId16 = 17e3;
 var fraxtalTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36064,6 +39183,7 @@ var fraxtalTestnet = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/funkiMainnet.js
+init_browser_buffer_global();
 var sourceId17 = 1;
 var funkiMainnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36088,6 +39208,7 @@ var funkiMainnet = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/funkiSepolia.js
+init_browser_buffer_global();
 var sourceId18 = 11155111;
 var funkiSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36117,7 +39238,20 @@ var funkiSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId18
 });
 
+// node_modules/viem/_esm/chains/definitions/fuse.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fuseSparknet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fusion.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/fusionTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/garnet.js
+init_browser_buffer_global();
 var sourceId19 = 17e3;
 var garnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36164,7 +39298,20 @@ var garnet = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/gatechain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/geist.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/genesys.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gensyn.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/giwaSepolia.js
+init_browser_buffer_global();
 var sourceId20 = 11155111;
 var giwaSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36220,7 +39367,185 @@ var giwaSepoliaPreconf = defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/glideL1Protocol.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/glideL2Protocol.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gnosis.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gnosisChiado.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/goat.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gobi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/goChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/godwoken.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/goerli.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/graphite.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/graphiteTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/grav.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gravity.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/gunz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/guruNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/guruTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ham.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/happychainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/haqqMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/haqqTestedge2.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hardhat.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/harmonyOne.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hashKeyChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hashkeyChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/haustTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hedera.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hederaPreviewnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hederaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hela.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/heliosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hemi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hemiSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/henesys.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/holesky.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hoodi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/horizenTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hpb.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hpp.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hppSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/huddle01Mainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/huddle01Testnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/humanity.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/humanityTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/humanode.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/humanodeTestnet5.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hychain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hychainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hyperEvm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/hyperliquidEvmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/icbNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/idchain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/igra.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/immutableZkEvm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/immutableZkEvmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/inEVM.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/initVerse.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/initVerseGenesis.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/injective.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/injectiveTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/ink.js
+init_browser_buffer_global();
 var sourceId21 = 1;
 var ink = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36273,6 +39598,7 @@ var ink = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/inkSepolia.js
+init_browser_buffer_global();
 var sourceId22 = 11155111;
 var inkSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36317,7 +39643,176 @@ var inkSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId22
 });
 
+// node_modules/viem/_esm/chains/definitions/iota.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/iotaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/iotex.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/iotexTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/iSunCoin.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jasmyChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jasmyChainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jbc.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jbcTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jocMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jocTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jovay.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/jovaySepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneo.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoBCH1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoDAI1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoDOGE1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoEUR1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoGLD1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoLINK1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoLTC1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneomBTC1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoSGD1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoSocotraTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoUSD1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/juneoUSDT1Chain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kaia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kairos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kakarotSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kakarotStarknetSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kardiaChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/karura.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/katana.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kava.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kavaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kcc.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kii.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kiiTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kinto.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/klaytn.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/klaytnBaobab.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/koi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kroma.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/kromaSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/krown.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/l3x.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/l3xTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ladyChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lavita.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lens.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lensTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lightlinkPegasus.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lightlinkPhoenix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/linea.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/linea/chainConfig.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/linea/actions/estimateGas.js
+init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
 init_getCallError();
@@ -36444,7 +39939,11 @@ var linea = /* @__PURE__ */ defineChain2({
   testnet: false
 });
 
+// node_modules/viem/_esm/chains/definitions/lineaGoerli.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/lineaSepolia.js
+init_browser_buffer_global();
 var lineaSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig4,
   id: 59141,
@@ -36481,7 +39980,11 @@ var lineaSepolia = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/lineaTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/lisk.js
+init_browser_buffer_global();
 var sourceId23 = 1;
 var lisk = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36535,6 +40038,7 @@ var lisk = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/liskSepolia.js
+init_browser_buffer_global();
 var sourceId24 = 11155111;
 var liskSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36579,7 +40083,44 @@ var liskSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId24
 });
 
+// node_modules/viem/_esm/chains/definitions/loadAlphanet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/localhost.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/loop.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lukso.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/luksoTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lumiaMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lumiaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lumoz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lumozTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/luxeports.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lycan.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/lyra.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/mainnet.js
+init_browser_buffer_global();
 var mainnet = /* @__PURE__ */ defineChain2({
   id: 1,
   name: "Ethereum",
@@ -36609,7 +40150,47 @@ var mainnet = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/mandala.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/manta.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantaSepoliaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantle.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantleSepoliaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantleTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantraDuKongEVMTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mantraEVM.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mapProtocol.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/matchain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/matchainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mchVerse.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/megaeth.js
+init_browser_buffer_global();
 var sourceId25 = 1;
 var megaeth = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36666,7 +40247,38 @@ var megaeth = /* @__PURE__ */ defineChain2({
   sourceId: sourceId25
 });
 
+// node_modules/viem/_esm/chains/definitions/megaethTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mekong.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/meld.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/memecore.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/memecoreFormicariumTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/merlin.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/merlinErigonTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metachain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metachainIstanbul.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metadium.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/metalL2.js
+init_browser_buffer_global();
 var sourceId26 = 1;
 var metalL2 = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36715,7 +40327,47 @@ var metalL2 = /* @__PURE__ */ defineChain2({
   sourceId: sourceId26
 });
 
+// node_modules/viem/_esm/chains/definitions/meter.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/meterTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metis.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metisGoerli.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/metisSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mev.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mevTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mezo.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mezoTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mint.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mintSepoliaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mitosisTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/mizuhikiTestnetAwaji.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/mode.js
+init_browser_buffer_global();
 var sourceId27 = 1;
 var mode = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36764,6 +40416,7 @@ var mode = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/modeTestnet.js
+init_browser_buffer_global();
 var sourceId28 = 11155111;
 var modeTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36811,7 +40464,104 @@ var modeTestnet = /* @__PURE__ */ defineChain2({
   sourceId: sourceId28
 });
 
+// node_modules/viem/_esm/chains/definitions/monad.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/monadTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/moonbaseAlpha.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/moonbeam.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/moonbeamDev.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/moonriver.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/morph.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/morphHolesky.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/morphSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nahmii.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nautilus.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/near.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nearTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/neonDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/neonMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/neoxMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/neoxT4.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/newton.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nexi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nexilix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nibiru.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nitrographTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/nomina.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/oasisTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/oasys.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/odysseyTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/okc.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/omax.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/omni.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/omniOmega.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/oneWorld.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/oortmainnetDev.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/opBNB.js
+init_browser_buffer_global();
 var sourceId29 = 56;
 var opBNB = /* @__PURE__ */ defineChain2({
   id: 204,
@@ -36857,6 +40607,7 @@ var opBNB = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/opBNBTestnet.js
+init_browser_buffer_global();
 var sourceId30 = 97;
 var opBNBTestnet = /* @__PURE__ */ defineChain2({
   id: 5611,
@@ -36901,7 +40652,11 @@ var opBNBTestnet = /* @__PURE__ */ defineChain2({
   sourceId: sourceId30
 });
 
+// node_modules/viem/_esm/chains/definitions/openledger.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/optimism.js
+init_browser_buffer_global();
 var sourceId31 = 1;
 var optimism = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36951,6 +40706,7 @@ var optimism = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/optimismGoerli.js
+init_browser_buffer_global();
 var sourceId32 = 5;
 var optimismGoerli = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -36996,6 +40752,7 @@ var optimismGoerli = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/optimismSepolia.js
+init_browser_buffer_global();
 var sourceId33 = 11155111;
 var optimismSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37045,7 +40802,35 @@ var optimismSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId33
 });
 
+// node_modules/viem/_esm/chains/definitions/optopia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/optopiaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/orderly.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/orderlySepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/otimDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/palm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/palmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/paseoPassetHub.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/peaq.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/pgn.js
+init_browser_buffer_global();
 var sourceId34 = 1;
 var pgn = /* @__PURE__ */ defineChain2({
   id: 424,
@@ -37090,6 +40875,7 @@ var pgn = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/pgnTestnet.js
+init_browser_buffer_global();
 var sourceId35 = 11155111;
 var pgnTestnet = /* @__PURE__ */ defineChain2({
   id: 58008,
@@ -37134,7 +40920,23 @@ var pgnTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/phoenix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/planq.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plasma.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plasmaDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plasmaTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/playfiAlbireo.js
+init_browser_buffer_global();
 var playfiAlbireo = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 1612127,
@@ -37161,7 +40963,29 @@ var playfiAlbireo = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/plinga.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plume.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plumeDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plumeMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plumeSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/plumeTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polterTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/polygon.js
+init_browser_buffer_global();
 var polygon = /* @__PURE__ */ defineChain2({
   id: 137,
   name: "Polygon",
@@ -37188,6 +41012,7 @@ var polygon = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/polygonAmoy.js
+init_browser_buffer_global();
 var polygonAmoy = /* @__PURE__ */ defineChain2({
   id: 80002,
   name: "Polygon Amoy",
@@ -37213,7 +41038,44 @@ var polygonAmoy = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/polygonMumbai.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polygonZkEvm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polygonZkEvmCardona.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polygonZkEvmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polynomial.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/polynomialSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/potos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/potosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/premiumBlock.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/pulsechain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/pulsechainV4.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/pumpfiTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/pyrope.js
+init_browser_buffer_global();
 var sourceId36 = 11155111;
 var pyrope = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37244,7 +41106,47 @@ var pyrope = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/ql1.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/qMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/qTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/quai.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/quaiTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/radius.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/radiusTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/reactiveTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/real.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/redbellyMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/redbellyTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/reddio.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/reddioSepolia.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/redstone.js
+init_browser_buffer_global();
 var sourceId37 = 1;
 var redstone = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37290,7 +41192,44 @@ var redstone = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/rei.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/reyaNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rise.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/riseTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rivalz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rollux.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rolluxTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ronin.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/root.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rootPorcini.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rootstock.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/rootstockTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/rss3.js
+init_browser_buffer_global();
 var sourceId38 = 1;
 var rss3 = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37336,6 +41275,7 @@ var rss3 = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/rss3Sepolia.js
+init_browser_buffer_global();
 var sourceId39 = 11155111;
 var rss3Sepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37381,7 +41321,38 @@ var rss3Sepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId39
 });
 
+// node_modules/viem/_esm/chains/definitions/saakuru.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/saga.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/saigon.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sanko.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sapphire.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sapphireTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/satoshivm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/satoshivmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/scroll.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/scrollSepolia.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/sei.js
+init_browser_buffer_global();
 var sei = /* @__PURE__ */ defineChain2({
   id: 1329,
   name: "Sei Network",
@@ -37406,7 +41377,11 @@ var sei = /* @__PURE__ */ defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/seismicDevnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/seiTestnet.js
+init_browser_buffer_global();
 var seiTestnet = /* @__PURE__ */ defineChain2({
   id: 1328,
   name: "Sei Testnet",
@@ -37433,7 +41408,14 @@ var seiTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/sentrix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sentrixTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/sepolia.js
+init_browser_buffer_global();
 var sepolia = /* @__PURE__ */ defineChain2({
   id: 11155111,
   name: "Sepolia",
@@ -37464,6 +41446,7 @@ var sepolia = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/shape.js
+init_browser_buffer_global();
 var sourceId40 = 1;
 var shape = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37511,6 +41494,7 @@ var shape = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/shapeSepolia.js
+init_browser_buffer_global();
 var sourceId41 = 11155111;
 var shapeSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37540,7 +41524,95 @@ var shapeSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId41
 });
 
+// node_modules/viem/_esm/chains/definitions/shardeum.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shardeumSphinx.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shibarium.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shibariumTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shiden.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shimmer.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/shimmerTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sidra.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/silentdata.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/silicon.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/siliconSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sixProtocol.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/brawl.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/calypso.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/calypsoTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/cryptoBlades.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/cryptoColosseum.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/europa.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/europaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/exorde.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/humanProtocol.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/nebula.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/nebulaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/razor.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/skaleBase.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/skaleBaseSepoliaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/titan.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/skale/titanTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sketchpad.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/snax.js
+init_browser_buffer_global();
 var sourceId42 = 1;
 var snax = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37590,6 +41662,7 @@ var snax = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/snaxTestnet.js
+init_browser_buffer_global();
 var sourceId43 = 11155111;
 var snaxTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37639,7 +41712,14 @@ var snaxTestnet = /* @__PURE__ */ defineChain2({
   sourceId: sourceId43
 });
 
+// node_modules/viem/_esm/chains/definitions/somnia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/somniaTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/soneium.js
+init_browser_buffer_global();
 var sourceId44 = 1;
 var soneium = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37691,6 +41771,7 @@ var soneium = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/soneiumMinato.js
+init_browser_buffer_global();
 var sourceId45 = 11155111;
 var soneiumMinato = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37742,7 +41823,14 @@ var soneiumMinato = /* @__PURE__ */ defineChain2({
   sourceId: sourceId45
 });
 
+// node_modules/viem/_esm/chains/definitions/songbird.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/songbirdTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/sonic.js
+init_browser_buffer_global();
 var sonic = /* @__PURE__ */ defineChain2({
   id: 146,
   name: "Sonic",
@@ -37770,7 +41858,14 @@ var sonic = /* @__PURE__ */ defineChain2({
   testnet: false
 });
 
+// node_modules/viem/_esm/chains/definitions/sonicBlazeTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sonicTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/sophon.js
+init_browser_buffer_global();
 var sophon = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   blockTime: 200,
@@ -37803,6 +41898,7 @@ var sophon = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/sophonTestnet.js
+init_browser_buffer_global();
 var sophonTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   blockTime: 200,
@@ -37834,7 +41930,23 @@ var sophonTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/sova.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/sovaSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/spicy.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/stable.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/stableTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/statusNetworkSepolia.js
+init_browser_buffer_global();
 var statusSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig4,
   id: 1660990954,
@@ -37865,7 +41977,35 @@ var statusSepolia = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/step.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/story.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/storyAeneid.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/storyOdyssey.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/storyTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/stratis.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/subtensorEvm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/superlumio.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/superposition.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/superseed.js
+init_browser_buffer_global();
 var sourceId46 = 1;
 var superseed = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37918,6 +42058,7 @@ var superseed = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/superseedSepolia.js
+init_browser_buffer_global();
 var sourceId47 = 11155111;
 var superseedSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -37962,7 +42103,20 @@ var superseedSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId47
 });
 
+// node_modules/viem/_esm/chains/definitions/surgeTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/swan.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/swanProximaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/swanSaturnTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/swellchain.js
+init_browser_buffer_global();
 var swellchain = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
   id: 1923,
@@ -37990,6 +42144,7 @@ var swellchain = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/swellchainTestnet.js
+init_browser_buffer_global();
 var swellchainTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
   id: 1924,
@@ -38017,10 +42172,69 @@ var swellchainTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/swissdlt.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/syscoin.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/syscoinTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tac.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tacSPB.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taiko.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taikoHekla.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taikoHoodi.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taikoJolnir.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taikoKatla.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taikoTestnetSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taraxa.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/taraxaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/teaSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/telcoinTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/telos.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/telosTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tempo.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/tempo/chainConfig.js
+init_browser_buffer_global();
 init_Hex();
 
+// node_modules/ox/_esm/tempo/index.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/tempo/AuthorizationTempo.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/tempo/SignatureEnvelope.js
@@ -38045,11 +42259,19 @@ __export(SignatureEnvelope_exports, {
   validate: () => validate8,
   verify: () => verify5
 });
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 init_Json();
 
+// node_modules/ox/_esm/core/P256.js
+init_browser_buffer_global();
+
+// node_modules/ox/node_modules/@noble/curves/esm/p256.js
+init_browser_buffer_global();
+
 // node_modules/ox/node_modules/@noble/curves/esm/nist.js
+init_browser_buffer_global();
 var Fp256 = Field2(BigInt("0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff"));
 var p256_a = Fp256.create(BigInt("-3"));
 var p256_b = BigInt("0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b");
@@ -38103,7 +42325,14 @@ function verify2(options) {
   return secp256r1.verify(signature, payload instanceof Uint8Array ? payload : fromHex(payload), toHex2(publicKey).substring(2), { lowS: true, ...hash5 ? { prehash: true } : {} });
 }
 
+// node_modules/ox/_esm/core/WebAuthnP256.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/webauthn/Authentication.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/core/Base64.js
+init_browser_buffer_global();
 init_Bytes();
 init_Hex();
 var encoder5 = /* @__PURE__ */ new TextEncoder();
@@ -38134,10 +42363,15 @@ init_Bytes();
 init_Errors();
 init_Hex();
 
+// node_modules/ox/_esm/core/internal/webauthn.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/webauthn/Registration.js
+init_browser_buffer_global();
 init_Bytes();
 
 // node_modules/ox/_esm/core/Cbor.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
@@ -38871,11 +43105,17 @@ function decodeCursor(cursor) {
 })(decodeCursor || (decodeCursor = {}));
 
 // node_modules/ox/_esm/core/CoseKey.js
+init_browser_buffer_global();
 init_Errors();
 
 // node_modules/ox/_esm/webauthn/Registration.js
 init_Errors();
 init_Hex();
+
+// node_modules/ox/_esm/webauthn/internal/utils.js
+init_browser_buffer_global();
+
+// node_modules/ox/_esm/webauthn/Registration.js
 var createChallenge = Uint8Array.from([
   105,
   171,
@@ -38896,6 +43136,7 @@ var createChallenge = Uint8Array.from([
 ]);
 
 // node_modules/ox/_esm/webauthn/Authenticator.js
+init_browser_buffer_global();
 init_Bytes();
 init_Hex();
 
@@ -38963,6 +43204,7 @@ __export(MultisigConfig_exports, {
   validate: () => validate7,
   zeroSalt: () => zeroSalt
 });
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 var maxOwners = 10;
@@ -39659,6 +43901,7 @@ var VerificationError2 = class extends BaseError3 {
 };
 
 // node_modules/ox/_esm/tempo/TempoAddress.js
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 function resolve(address2) {
@@ -39761,9 +44004,11 @@ function toTupleList(list) {
 }
 
 // node_modules/ox/_esm/tempo/Channel.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/tempo/TokenId.js
+init_browser_buffer_global();
 init_Hex();
 var tip20Prefix = "0x20c0";
 function toAddress(tokenId) {
@@ -39800,6 +44045,7 @@ __export(KeyAuthorization_exports, {
   toRpc: () => toRpc7,
   toTuple: () => toTuple5
 });
+init_browser_buffer_global();
 init_Hex();
 function from17(authorization, options = {}) {
   if ("keyId" in authorization)
@@ -40117,10 +44363,18 @@ var InvalidAdminMarkerError = class extends Error {
   }
 };
 
+// node_modules/ox/_esm/tempo/Period.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/tempo/PoolId.js
+init_browser_buffer_global();
 init_Hex();
 
+// node_modules/ox/_esm/tempo/ReceivePolicyReceipt.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/core/AbiEvent.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
@@ -40132,10 +44386,15 @@ function from18(abiEvent, options = {}) {
 // node_modules/ox/_esm/tempo/ReceivePolicyReceipt.js
 var transferBlocked = from18("event TransferBlocked(address indexed token, address indexed receiver, uint64 indexed blockedNonce, uint256 amount, uint8 receiptVersion, bytes receipt)");
 
+// node_modules/ox/_esm/tempo/RpcSchemaTempo.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/tempo/Tick.js
+init_browser_buffer_global();
 init_Errors();
 
 // node_modules/ox/_esm/tempo/TokenRole.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/tempo/Transaction.js
@@ -40146,9 +44405,11 @@ __export(Transaction_exports, {
   toRpc: () => toRpc9,
   toRpcType: () => toRpcType2
 });
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/Transaction.js
+init_browser_buffer_global();
 init_Hex();
 var toRpcType = {
   legacy: "0x0",
@@ -40313,10 +44574,15 @@ function toRpc9(transaction, _options) {
   return rpc2;
 }
 
+// node_modules/ox/_esm/tempo/TransactionReceipt.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/core/TransactionReceipt.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/Log.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/TransactionReceipt.js
@@ -40351,9 +44617,11 @@ __export(TransactionRequest_exports, {
   fromRpc: () => fromRpc12,
   toRpc: () => toRpc13
 });
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/TransactionRequest.js
+init_browser_buffer_global();
 init_Hex();
 function fromRpc11(request) {
   const request_ = request;
@@ -40519,8 +44787,10 @@ __export(TxEnvelopeTempo_exports, {
   type: () => type,
   validate: () => validate9
 });
+init_browser_buffer_global();
 
 // node_modules/ox/_esm/core/AccessList.js
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 function fromTupleList2(accessList) {
@@ -40569,9 +44839,11 @@ init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/core/TxEnvelope.js
+init_browser_buffer_global();
 init_Errors();
 
 // node_modules/ox/_esm/core/Value.js
+init_browser_buffer_global();
 init_Errors();
 var exponents = {
   wei: 0,
@@ -40910,20 +45182,27 @@ var InvalidValidityWindowError = class extends BaseError3 {
 };
 
 // node_modules/ox/_esm/tempo/VirtualAddress.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/tempo/VirtualMaster.js
+init_browser_buffer_global();
 init_Bytes();
 init_Errors();
 init_Hex();
 
 // node_modules/ox/_esm/tempo/internal/virtualMasterPool.js
+init_browser_buffer_global();
 init_Errors();
 var isNode = typeof globalThis.process !== "undefined" && typeof globalThis.process.versions?.node === "string";
 
+// node_modules/ox/_esm/tempo/ZoneId.js
+init_browser_buffer_global();
+
 // node_modules/ox/_esm/tempo/ZoneRpcAuthentication.js
+init_browser_buffer_global();
 init_Errors();
 init_Hex();
 
@@ -40934,9 +45213,11 @@ init_transactionRequest();
 init_keccak256();
 
 // node_modules/viem/_esm/tempo/actions/accessKey.js
+init_browser_buffer_global();
 init_parseAccount();
 
 // node_modules/viem/_esm/tempo/Abis.js
+init_browser_buffer_global();
 var tip20ChannelReserve = [
   {
     name: "CLOSE_GRACE_PERIOD",
@@ -43865,9 +48146,11 @@ var abis = [
 ];
 
 // node_modules/viem/_esm/tempo/Account.js
+init_browser_buffer_global();
 init_Hex();
 
 // node_modules/ox/_esm/core/WebCryptoP256.js
+init_browser_buffer_global();
 init_Bytes();
 init_Hex();
 
@@ -43876,6 +48159,7 @@ init_parseAccount();
 init_keccak256();
 
 // node_modules/viem/_esm/tempo/Transaction.js
+init_browser_buffer_global();
 init_Hex();
 function getType2(transaction) {
   const account = transaction.account;
@@ -44078,10 +48362,12 @@ function resolveAccessKey(accessKey) {
 }
 
 // node_modules/viem/_esm/tempo/Addresses.js
+init_browser_buffer_global();
 var accountKeychain2 = "0xaAAAaaAA00000000000000000000000000000000";
 var signatureVerifier2 = "0x5165300000000000000000000000000000000000";
 
 // node_modules/viem/_esm/tempo/Hardfork.js
+init_browser_buffer_global();
 var hardforks = [
   "genesis",
   "t0",
@@ -44100,6 +48386,7 @@ function lt(current, target) {
 }
 
 // node_modules/viem/_esm/tempo/internal/utils.js
+init_browser_buffer_global();
 function defineCall(call2) {
   return {
     ...call2,
@@ -44413,6 +48700,7 @@ function resolveAccessKeyAddress(accessKey) {
 }
 
 // node_modules/viem/_esm/tempo/Formatters.js
+init_browser_buffer_global();
 init_Hex();
 init_parseAccount();
 init_transactionRequest();
@@ -44501,6 +48789,7 @@ function shimKeyData(data) {
 }
 
 // node_modules/viem/_esm/tempo/internal/concurrent.js
+init_browser_buffer_global();
 var concurrentCounts = /* @__PURE__ */ new Map();
 async function detect(key) {
   concurrentCounts.set(key, (concurrentCounts.get(key) ?? 0) + 1);
@@ -44691,6 +48980,7 @@ var tempo = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/tempoDevnet.js
+init_browser_buffer_global();
 var tempoDevnet = /* @__PURE__ */ defineChain2({
   ...chainConfig5,
   id: 31318,
@@ -44717,6 +49007,7 @@ var tempoDevnet = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/tempoLocalnet.js
+init_browser_buffer_global();
 var tempoLocalnet = /* @__PURE__ */ defineChain2({
   ...chainConfig5,
   id: 1337,
@@ -44733,6 +49024,7 @@ var tempoLocalnet = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/tempoModerato.js
+init_browser_buffer_global();
 var tempoModerato = /* @__PURE__ */ defineChain2({
   ...chainConfig5,
   id: 42431,
@@ -44758,7 +49050,38 @@ var tempoModerato = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/tenet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ternoa.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/thaiChain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/that.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/theta.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/thetaTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/thunderCore.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/thunderTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tiktrixTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tomb.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/treasure.js
+init_browser_buffer_global();
 var treasure = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 61166,
@@ -44790,6 +49113,7 @@ var treasure = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/treasureTopaz.js
+init_browser_buffer_global();
 var treasureTopaz = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 978658,
@@ -44820,7 +49144,32 @@ var treasureTopaz = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/tron.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tronNile.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/tronShasta.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ubiq.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ultra.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ultraTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ultron.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/ultronTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/unichain.js
+init_browser_buffer_global();
 var sourceId48 = 1;
 var unichain = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -44866,6 +49215,7 @@ var unichain = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/unichainSepolia.js
+init_browser_buffer_global();
 var sourceId49 = 11155111;
 var unichainSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -44915,7 +49265,20 @@ var unichainSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId49
 });
 
+// node_modules/viem/_esm/chains/definitions/unique.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/uniqueOpal.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/uniqueQuartz.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/unreal.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/valygoNft.js
+init_browser_buffer_global();
 var valygoNft = defineChain2({
   id: 7773777,
   name: "VALYGO NFT",
@@ -44950,6 +49313,7 @@ var valygoNft = defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/valygoSmartchain.js
+init_browser_buffer_global();
 var valygoSmartchain = defineChain2({
   id: 7771777,
   name: "VALYGO Smartchain",
@@ -44983,7 +49347,62 @@ var valygoSmartchain = defineChain2({
   }
 });
 
+// node_modules/viem/_esm/chains/definitions/vana.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/vanaMoksha.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/vanar.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/vechain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/velas.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/viction.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/victionTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/vision.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/visionTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/wanchain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/wanchainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/weavevmAlphanet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/wemix.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/wemixTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/westendAssetHub.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/whitechain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/whitechainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/wmcTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/worldchain.js
+init_browser_buffer_global();
 var sourceId50 = 1;
 var worldchain = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45038,6 +49457,7 @@ var worldchain = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/worldchainSepolia.js
+init_browser_buffer_global();
 var sourceId51 = 11155111;
 var worldchainSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45091,7 +49511,17 @@ var worldchainSepolia = /* @__PURE__ */ defineChain2({
   sourceId: sourceId51
 });
 
+// node_modules/viem/_esm/chains/definitions/worldLand.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xai.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xaiTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/xdc.js
+init_browser_buffer_global();
 var xdc = /* @__PURE__ */ defineChain2({
   id: 50,
   name: "XDC Network",
@@ -45118,6 +49548,7 @@ var xdc = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/xdcTestnet.js
+init_browser_buffer_global();
 var xdcTestnet = /* @__PURE__ */ defineChain2({
   id: 51,
   name: "Apothem Network",
@@ -45144,7 +49575,77 @@ var xdcTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/xgr.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xLayer.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xLayerTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xoneMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xoneTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xphereMainnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xphereTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xpla.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xrOne.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xrplevm.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xrplevmDevnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xrplevmTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/xrSepolia.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/yooldoVerse.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/yooldoVerseTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zenchainTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zeniq.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zeroNetwork.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zetachain.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zetachainAthensTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zhejiang.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zilliqa.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zilliqaTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/zircuit.js
+init_browser_buffer_global();
 var sourceId52 = 1;
 var zircuit = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45191,6 +49692,7 @@ var zircuit = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zircuitGarfieldTestnet.js
+init_browser_buffer_global();
 var sourceId53 = 11155111;
 var zircuitGarfieldTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45232,7 +49734,20 @@ var zircuitGarfieldTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/zkFair.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zkFairTestnet.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zkLinkNova.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zkLinkNovaSepoliaTestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/zksync.js
+init_browser_buffer_global();
 var zksync = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   blockTime: 200,
@@ -45270,6 +49785,7 @@ var zksync = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zksyncInMemoryNode.js
+init_browser_buffer_global();
 var zksyncInMemoryNode = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 260,
@@ -45285,6 +49801,7 @@ var zksyncInMemoryNode = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zksyncLocalCustomHyperchain.js
+init_browser_buffer_global();
 var zksyncLocalCustomHyperchain = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 272,
@@ -45307,6 +49824,7 @@ var zksyncLocalCustomHyperchain = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zksyncLocalHyperchain.js
+init_browser_buffer_global();
 var zksyncLocalHyperchain = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 270,
@@ -45328,7 +49846,11 @@ var zksyncLocalHyperchain = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/zksyncLocalHyperchainL1.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/zksyncLocalNode.js
+init_browser_buffer_global();
 var zksyncLocalNode = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   id: 270,
@@ -45344,6 +49866,7 @@ var zksyncLocalNode = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zksyncSepoliaTestnet.js
+init_browser_buffer_global();
 var zksyncSepoliaTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig,
   blockTime: 200,
@@ -45376,7 +49899,14 @@ var zksyncSepoliaTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/chains/definitions/zkXPLA.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/chains/definitions/zkXPLATestnet.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/chains/definitions/zora.js
+init_browser_buffer_global();
 var sourceId54 = 1;
 var zora = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45431,6 +49961,7 @@ var zora = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zoraSepolia.js
+init_browser_buffer_global();
 var sourceId55 = 11155111;
 var zoraSepolia = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45482,6 +50013,7 @@ var zoraSepolia = /* @__PURE__ */ defineChain2({
 });
 
 // node_modules/viem/_esm/chains/definitions/zoraTestnet.js
+init_browser_buffer_global();
 var sourceId56 = 5;
 var zoraTestnet = /* @__PURE__ */ defineChain2({
   ...chainConfig2,
@@ -45521,7 +50053,23 @@ var zoraTestnet = /* @__PURE__ */ defineChain2({
   testnet: true
 });
 
+// node_modules/viem/_esm/accounts/index.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/lib/esm/index.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/node_modules/@noble/curves/esm/abstract/modular.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/node_modules/@noble/curves/esm/utils.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/node_modules/@noble/hashes/esm/utils.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/crypto.js
+init_browser_buffer_global();
 var crypto4 = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : void 0;
 
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/utils.js
@@ -46158,7 +50706,14 @@ function mapHashToField3(key, fieldOrder, isLE3 = false) {
   return isLE3 ? numberToBytesLE3(reduced, fieldLen) : numberToBytesBE3(reduced, fieldLen);
 }
 
+// node_modules/@scure/bip32/node_modules/@noble/curves/esm/secp256k1.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/node_modules/@noble/hashes/esm/sha2.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/_md.js
+init_browser_buffer_global();
 function setBigUint643(view, byteOffset, value, isLE3) {
   if (typeof view.setBigUint64 === "function")
     return view.setBigUint64(byteOffset, value, isLE3);
@@ -46279,6 +50834,7 @@ var SHA256_IV3 = /* @__PURE__ */ Uint32Array.from([
 ]);
 
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/_u64.js
+init_browser_buffer_global();
 var U32_MASK643 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/sha2.js
@@ -46421,7 +50977,14 @@ var SHA2563 = class extends HashMD3 {
 };
 var sha2567 = /* @__PURE__ */ createHasher5(() => new SHA2563());
 
+// node_modules/@scure/bip32/node_modules/@noble/curves/esm/_shortw_utils.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip32/node_modules/@noble/curves/esm/abstract/weierstrass.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip32/node_modules/@noble/hashes/esm/hmac.js
+init_browser_buffer_global();
 var HMAC3 = class extends Hash3 {
   constructor(hash5, _key) {
     super();
@@ -46490,6 +51053,7 @@ var hmac3 = (hash5, key, message) => new HMAC3(hash5, key).update(message).diges
 hmac3.create = (hash5, key) => new HMAC3(hash5, key);
 
 // node_modules/@scure/bip32/node_modules/@noble/curves/esm/abstract/curve.js
+init_browser_buffer_global();
 var _0n15 = BigInt(0);
 var _1n15 = BigInt(1);
 function negateCt(condition, item) {
@@ -47788,6 +52352,7 @@ function createCurve3(curveDef, defHash) {
 }
 
 // node_modules/@scure/bip32/node_modules/@noble/curves/esm/abstract/hash-to-curve.js
+init_browser_buffer_global();
 var _DST_scalar = utf8ToBytes5("HashToScalar-");
 
 // node_modules/@scure/bip32/node_modules/@noble/curves/esm/secp256k1.js
@@ -47833,7 +52398,11 @@ function sqrtMod3(y) {
 var Fpk13 = Field3(secp256k1_CURVE.p, { sqrt: sqrtMod3 });
 var secp256k13 = createCurve3({ ...secp256k1_CURVE, Fp: Fpk13, lowS: true, endo: secp256k1_ENDO }, sha2567);
 
+// node_modules/@scure/bip32/node_modules/@noble/hashes/esm/legacy.js
+init_browser_buffer_global();
+
 // node_modules/@scure/base/lib/esm/index.js
+init_browser_buffer_global();
 function isBytes8(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
 }
@@ -48022,7 +52591,23 @@ var Point2 = secp256k13.ProjectivePoint;
 var base58check = createBase58check(sha2567);
 var MASTER_SECRET = utf8ToBytes5("Bitcoin seed");
 
+// node_modules/viem/_esm/accounts/generateMnemonic.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip39/esm/index.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip39/node_modules/@noble/hashes/esm/pbkdf2.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip39/node_modules/@noble/hashes/esm/hmac.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip39/node_modules/@noble/hashes/esm/utils.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip39/node_modules/@noble/hashes/esm/crypto.js
+init_browser_buffer_global();
 var crypto5 = typeof globalThis === "object" && "crypto" in globalThis ? globalThis.crypto : void 0;
 
 // node_modules/@scure/bip39/node_modules/@noble/hashes/esm/utils.js
@@ -48138,41 +52723,71 @@ var HMAC4 = class extends Hash4 {
 var hmac4 = (hash5, key, message) => new HMAC4(hash5, key).update(message).digest();
 hmac4.create = (hash5, key) => new HMAC4(hash5, key);
 
+// node_modules/@scure/bip39/node_modules/@noble/hashes/esm/sha2.js
+init_browser_buffer_global();
+
+// node_modules/@scure/bip39/node_modules/@noble/hashes/esm/_md.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip39/node_modules/@noble/hashes/esm/_u64.js
+init_browser_buffer_global();
 var U32_MASK644 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 
 // node_modules/viem/_esm/accounts/generatePrivateKey.js
+init_browser_buffer_global();
 init_secp256k1();
 init_toHex();
 
 // node_modules/viem/_esm/accounts/hdKeyToAccount.js
+init_browser_buffer_global();
 init_toHex();
 
 // node_modules/viem/_esm/accounts/privateKeyToAccount.js
+init_browser_buffer_global();
 init_secp256k1();
 init_toHex();
 
 // node_modules/viem/_esm/accounts/toAccount.js
+init_browser_buffer_global();
 init_address();
 init_isAddress();
 
 // node_modules/viem/_esm/accounts/utils/sign.js
+init_browser_buffer_global();
 init_secp256k1();
 init_isHex();
 init_toBytes();
 init_toHex();
 
+// node_modules/viem/_esm/accounts/utils/signAuthorization.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/accounts/utils/signMessage.js
+init_browser_buffer_global();
+
 // node_modules/viem/_esm/accounts/utils/signTransaction.js
+init_browser_buffer_global();
 init_keccak256();
+
+// node_modules/viem/_esm/accounts/utils/signTypedData.js
+init_browser_buffer_global();
+
+// node_modules/viem/_esm/accounts/mnemonicToAccount.js
+init_browser_buffer_global();
 
 // node_modules/viem/_esm/accounts/index.js
 init_parseAccount();
 
 // node_modules/viem/_esm/accounts/utils/privateKeyToAddress.js
+init_browser_buffer_global();
 init_secp256k1();
 init_toHex();
 
+// node_modules/viem/_esm/accounts/wordlists.js
+init_browser_buffer_global();
+
 // node_modules/@scure/bip39/esm/wordlists/czech.js
+init_browser_buffer_global();
 var wordlist = `abdikace
 abeceda
 adresa
@@ -50223,6 +54838,7 @@ zvukovod
 zvyk`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/english.js
+init_browser_buffer_global();
 var wordlist2 = `abandon
 ability
 able
@@ -52273,6 +56889,7 @@ zone
 zoo`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/french.js
+init_browser_buffer_global();
 var wordlist3 = `abaisser
 abandon
 abdiquer
@@ -54323,6 +58940,7 @@ zeste
 zoologie`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/italian.js
+init_browser_buffer_global();
 var wordlist4 = `abaco
 abbaglio
 abbinato
@@ -56373,6 +60991,7 @@ zulu
 zuppa`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/japanese.js
+init_browser_buffer_global();
 var wordlist5 = `\u3042\u3044\u3053\u304F\u3057\u3093
 \u3042\u3044\u3055\u3064
 \u3042\u3044\u305F\u3099
@@ -58423,6 +63042,7 @@ var wordlist5 = `\u3042\u3044\u3053\u304F\u3057\u3093
 \u308F\u308C\u308B`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/korean.js
+init_browser_buffer_global();
 var wordlist6 = `\u1100\u1161\u1100\u1167\u11A8
 \u1100\u1161\u1101\u1173\u11B7
 \u1100\u1161\u1102\u1161\u11AB
@@ -60473,6 +65093,7 @@ var wordlist6 = `\u1100\u1161\u1100\u1167\u11A8
 \u1112\u1175\u11B7\u1101\u1165\u11BA`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/portuguese.js
+init_browser_buffer_global();
 var wordlist7 = `abacate
 abaixo
 abalar
@@ -62523,6 +67144,7 @@ zoologia
 zumbido`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/simplified-chinese.js
+init_browser_buffer_global();
 var wordlist8 = `\u7684
 \u4E00
 \u662F
@@ -64573,6 +69195,7 @@ var wordlist8 = `\u7684
 \u6B47`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/spanish.js
+init_browser_buffer_global();
 var wordlist9 = `a\u0301baco
 abdomen
 abeja
@@ -66623,6 +71246,7 @@ zumo
 zurdo`.split("\n");
 
 // node_modules/@scure/bip39/esm/wordlists/traditional-chinese.js
+init_browser_buffer_global();
 var wordlist10 = `\u7684
 \u4E00
 \u662F
@@ -72942,7 +77566,7 @@ var bytes32ToEvm = (bytes32) => {
 };
 function bytes32ToSolana(bytes32) {
   const hex = bytes32.startsWith("0x") ? bytes32.slice(2) : bytes32;
-  const buffer2 = Buffer.from(hex, "hex");
+  const buffer2 = import_buffer.Buffer.from(hex, "hex");
   return esm_default2.encode(new Uint8Array(buffer2));
 }
 var convertAddress = (address2, targetFormat) => {
@@ -81396,7 +86020,7 @@ async function createViemAdapterFromProvider(params) {
   return await Promise.resolve(adapter2);
 }
 
-// src/arc-usdc-tools.ts
+// circle/arc/src/arc-usdc-tools.ts
 var ARC_TESTNET = {
   chainId: "0x4cef52",
   chainName: "Arc Testnet",
@@ -81668,6 +86292,17 @@ el.refresh.addEventListener("click", () => void refreshBalances());
 el.memoSend.addEventListener("click", () => void sendMemo());
 el.batchSend.addEventListener("click", () => void sendBatch());
 /*! Bundled license information:
+
+ieee754/index.js:
+  (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+
+buffer/index.js:
+  (*!
+   * The buffer module from node.js, for the browser.
+   *
+   * @author   Feross Aboukhadijeh <https://feross.org>
+   * @license  MIT
+   *)
 
 @noble/hashes/esm/utils.js:
 @noble/hashes/esm/utils.js:

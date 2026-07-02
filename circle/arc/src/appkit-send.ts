@@ -67,7 +67,7 @@ const el = {
 };
 
 el.recipient.value = CIRCLE_WALLET;
-el.amount.value = "1.00";
+el.amount.value = "0.01";
 el.token.value = "USDC";
 
 function setStatus(message: string): void {

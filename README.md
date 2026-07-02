@@ -1,22 +1,39 @@
-# Base and Circle Activity
+# Circle / Arc Workspace
 
-Base 작업과 Circle/Arc Testnet 작업을 한 저장소에서 분리해 관리하는 프로젝트입니다.
+This workspace contains Arc Testnet experiments, Circle App Kit pages, custom
+Solidity contracts, and the hackathon MVP named ArcInvoice.
+
+## ArcInvoice MVP
+
+ArcInvoice is a small USDC invoice product for the Arc hackathon:
+
+- Merchants create invoice records through a backend API.
+- The invoice is registered on an Arc smart contract.
+- Buyers pay native USDC on Arc.
+- The app stores a receipt with tx hashes and ArcScan links.
+
+See [circle/arc/ARCINVOICE.md](circle/arc/ARCINVOICE.md) for the architecture,
+demo script, and submission notes.
 
 ## Structure
 
-- `base/`: Base 토큰 컨트랙트와 배포 스크립트
-- `circle/arc/`: Circle Arc Testnet 컨트랙트, App Kit UI, 배포/검증 스크립트
-- `shared/`: 공통 설정과 환경 변수 helper
+- `circle/arc/contracts/`: Arc Testnet Solidity contracts.
+- `circle/arc/src/`: browser TypeScript entrypoints.
+- `circle/arc/public/`: static app pages and browser bundles.
+- `circle/arc/scripts/`: local server, compile scripts, and Circle helpers.
+- `base/`: Base testnet token work.
+- `shared/`: common config and helpers.
 
 ## Commands
 
 ```bash
 npm install
-npm run typecheck
 npm run compile-custom
+npm run build-arc-invoice
+npm run typecheck
 npm run start-deployer
 ```
 
-Base 배포는 `npm run deploy-base-token`, Circle Contracts/App Kit 작업은 `circle/arc` 아래 스크립트와 UI를 사용합니다.
+Open `http://localhost:4173` after the server starts.
 
 Secrets are stored only in local `.env` and are never committed.

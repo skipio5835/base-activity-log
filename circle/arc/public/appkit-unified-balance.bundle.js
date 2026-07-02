@@ -1813,10 +1813,10 @@ var require_buffer = __commonJS({
   }
 });
 
-// scripts/browser-buffer-global.js
+// circle/arc/scripts/browser-buffer-global.js
 var import_buffer;
 var init_browser_buffer_global = __esm({
-  "scripts/browser-buffer-global.js"() {
+  "circle/arc/scripts/browser-buffer-global.js"() {
     import_buffer = __toESM(require_buffer());
     globalThis.Buffer = globalThis.Buffer || import_buffer.Buffer;
   }
@@ -35773,7 +35773,7 @@ var init_call = __esm({
   }
 });
 
-// src/appkit-unified-balance.ts
+// circle/arc/src/appkit-unified-balance.ts
 init_browser_buffer_global();
 
 // node_modules/@circle-fin/app-kit/index.mjs
@@ -136252,7 +136252,7 @@ async function createViemAdapterFromProvider(params) {
   return await Promise.resolve(adapter2);
 }
 
-// src/appkit-unified-balance.ts
+// circle/arc/src/appkit-unified-balance.ts
 var USER_WALLET = "0xD0C8B6025789aA6AB05d171AB0a6776fEAA6D1fc";
 var USDC_DECIMALS2 = 6;
 var chainMeta = {
@@ -136356,8 +136356,8 @@ var el = {
 };
 el.expectedAccount.value = USER_WALLET;
 el.recipient.value = USER_WALLET;
-el.depositAmount.value = "1.00";
-el.spendAmount.value = "1.00";
+el.depositAmount.value = "0.1";
+el.spendAmount.value = "0.01";
 kit.unifiedBalance.on("*", (payload) => {
   const row = document.createElement("div");
   row.textContent = stringify4(payload);

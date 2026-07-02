@@ -151,8 +151,8 @@ const el = {
 
 el.expectedAccount.value = USER_WALLET;
 el.recipient.value = USER_WALLET;
-el.depositAmount.value = "1.00";
-el.spendAmount.value = "1.00";
+el.depositAmount.value = "0.1";
+el.spendAmount.value = "0.01";
 
 kit.unifiedBalance.on("*", (payload) => {
   const row = document.createElement("div");
