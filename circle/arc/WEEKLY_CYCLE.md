@@ -24,6 +24,7 @@ npm.cmd run cycle:combo -- --open coupon
 npm.cmd run cycle:combo -- --open referral
 npm.cmd run cycle:combo -- --open cashback
 npm.cmd run cycle:combo -- --open auction
+npm.cmd run cycle:combo -- --open auction-cancel
 npm.cmd run cycle:combo -- --open rental
 npm.cmd run cycle:combo -- --open warranty
 npm.cmd run cycle:combo -- --open support
@@ -42,7 +43,7 @@ $env:PORT="4174"; npm.cmd run cycle:today
 $env:PORT="4174"; npm.cmd run start-deployer
 ```
 
-The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, ArcQuote acceptance/settlement receipts, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcEscrow dispute evidence/resolution, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment/return receipts, ArcService booking pricing/completion, ArcWorkOrder submission/approval receipts, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
+The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, ArcQuote acceptance/settlement receipts, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcEscrow dispute evidence/resolution, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment/return receipts, ArcService booking pricing/completion, ArcWorkOrder submission/approval receipts, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid/settlement/cancel receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
 
 Fast order:
 
@@ -157,6 +158,9 @@ Fast order:
 95. ArcAuction First Bid: place the printed minimum bid.
 96. ArcAuction Raise Bid: place a higher bid and record the previous-bid refund behavior.
 97. ArcAuction Settle Auction: settle the winning bid to the MetaMask wallet.
+97A. ArcAuction Create Cancel Test: create a separate native-USDC auction for the cancel path.
+97B. ArcAuction Bid Cancel Test: place the printed minimum bid on the cancel-test auction.
+97C. ArcAuction Cancel Auction: cancel the cancel-test auction and record the bid refund behavior.
 98. ArcRental Create Rental: deploy once if needed, then create a native-USDC rental with a fee and deposit.
 99. ArcRental Book Rental: book the rental by paying fee plus deposit.
 100. ArcRental Return Rental: record the return, pay the fee plus damage fee, and refund the remaining deposit.

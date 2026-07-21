@@ -250,6 +250,14 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error.";
 }
 
+async function waitForSuccess(hash: Hash, action: string) {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") {
+    throw new Error(`${action} reverted. Tx: ${hash}`);
+  }
+  return receipt;
+}
+
 function auctionId(): Hash {
   const title = el.title.value.trim();
   if (!title) throw new Error("Title is required.");
@@ -457,7 +465,7 @@ async function deployContract(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Deploy submitted:", hash);
-    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    const receipt = await waitForSuccess(hash, "Deployment");
     if (!receipt.contractAddress) throw new Error("Deployment receipt did not include a contract address.");
 
     contractAddress = receipt.contractAddress;
@@ -545,7 +553,7 @@ async function createAuction(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Create submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash, "Create auction");
     await refreshAuction();
     setStatus("Auction created:", hash);
   } catch (error) {
@@ -571,7 +579,7 @@ async function bidAmount(amount: bigint, label: string): Promise<void> {
       value: amount,
     });
     setStatus(`${label} submitted:`, hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash, label);
     await refreshBalance();
     await refreshAuction();
     setStatus(`${label} confirmed:`, hash);
@@ -611,7 +619,7 @@ async function settleAuction(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Settle submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash, "Settle auction");
     await refreshBalance();
     await refreshAuction();
     setStatus("Auction settled:", hash);
@@ -641,7 +649,7 @@ async function cancelAuction(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Cancel submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash, "Cancel auction");
     await refreshBalance();
     await refreshAuction();
     setStatus("Auction canceled:", hash);
@@ -655,6 +663,7 @@ async function cancelAuction(): Promise<void> {
 async function runAutoFlow(): Promise<void> {
   if (params.get("autorun") !== "1") return;
 
+  const mode = params.get("mode") === "cancel" ? "cancel" : "settle";
   setStatus("Auto flow starting. Approve each MetaMask request as it appears.");
   await connect();
   if (!walletClient || !account) return;
@@ -677,17 +686,22 @@ async function runAutoFlow(): Promise<void> {
       await bidAmount(minBid, "Placing bid");
       await refreshAuction();
     }
-    if (currentAuction && currentAuction.highestBid < raisedBid) {
+    if (mode === "cancel") {
+      if (currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
+        await cancelAuction();
+        await refreshAuction();
+      }
+    } else if (currentAuction && currentAuction.highestBid < raisedBid) {
       await bidAmount(raisedBid, "Raising bid");
       await refreshAuction();
     }
-    if (currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
+    if (mode === "settle" && currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
       await settleAuction();
       await refreshAuction();
     }
   }
 
-  setStatus(`Auto flow complete for ${contractAddress}.`);
+  setStatus(`Auto ${mode} flow complete for ${contractAddress}.`);
 }
 
 el.cancelAuction.addEventListener("click", () => void cancelAuction());

@@ -6,6 +6,7 @@ type ComboKey =
   | "referral"
   | "cashback"
   | "auction"
+  | "auction-cancel"
   | "rental"
   | "warranty"
   | "support"
@@ -43,6 +44,7 @@ type ComboSpec = {
   claim: string;
   contract: string;
   label: string;
+  mode?: "settle" | "cancel";
   page: string;
   title: string;
 };
@@ -319,8 +321,18 @@ function buildSpecs(cycleDate: string, variant: number, plan: ComboPlan): Record
       claim: plan.auctionSettlement,
       contract: process.env.ARCAUCTION_CONTRACT?.trim() || DEFAULT_ARCAUCTION_CONTRACT,
       label: `arc-auction-${cycleDate}-v${variant}`,
+      mode: "settle",
       page: "arc-auction.html",
       title: "ArcAuction Create + Bid + Raise + Settle",
+    },
+    "auction-cancel": {
+      amount: plan.auctionMinBid,
+      claim: plan.auctionSettlement.replace("settled", "canceled"),
+      contract: process.env.ARCAUCTION_CONTRACT?.trim() || DEFAULT_ARCAUCTION_CONTRACT,
+      label: `arc-auction-cancel-${cycleDate}-v${variant}`,
+      mode: "cancel",
+      page: "arc-auction.html",
+      title: "ArcAuction Create + Bid + Cancel",
     },
     rental: {
       amount: plan.rentalFee,
@@ -363,6 +375,8 @@ function buildUrl(spec: ComboSpec): string {
     const plan = productPlans[variantIndex];
     const params = new URLSearchParams({
       autorun: "1",
+      mode: spec.mode ?? "settle",
+      cancelURI: `local:${spec.label}:${plan.auctionSettlement.replace("settled", "canceled")}`,
       contract: spec.contract,
       durationMinutes: "0",
       metadataURI: `local:${spec.label}`,

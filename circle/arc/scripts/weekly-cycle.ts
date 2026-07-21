@@ -1067,6 +1067,8 @@ const cashbackLabel = `arc-cashback-${cycleDate}-v${planIndex + 1}`;
 const cashbackClaimURI = `local:${cashbackLabel}:${productPlan.cashbackClaim}`;
 const auctionTitle = `arc-auction-${cycleDate}-v${planIndex + 1}`;
 const auctionSettlementURI = `local:${auctionTitle}:${productPlan.auctionSettlement}`;
+const auctionCancelTitle = `arc-auction-cancel-${cycleDate}-v${planIndex + 1}`;
+const auctionCancelURI = `local:${auctionCancelTitle}:${productPlan.auctionSettlement.replace("settled", "canceled")}`;
 const rentalTitle = `arc-rental-${cycleDate}-v${planIndex + 1}`;
 const rentalReturnURI = `local:${rentalTitle}:${productPlan.rentalReturn}`;
 const warrantyTitle = `arc-warranty-${cycleDate}-v${planIndex + 1}`;
@@ -2426,6 +2428,43 @@ const steps: Step[] = [
       "Click Settle Auction after the raised bid confirms.",
     ],
     proof: "Save settleAuction txHash/explorer link and final status = settled.",
+  },
+  {
+    title: "97A. ArcAuction Create Cancel Test",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionCancelTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Metadata URI: local:${auctionCancelTitle}`,
+      `Minimum bid: ${productPlan.auctionMinBid} native USDC`,
+      "Duration minutes: 0 / immediate cancellation allowed",
+      "Create a separate auction for the cancel/refund path.",
+    ],
+    proof: "Save createAuction txHash/explorer link and cancel-test auctionId.",
+  },
+  {
+    title: "97B. ArcAuction Bid Cancel Test",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionCancelTitle}`,
+      `Bid amount: ${productPlan.auctionMinBid} native USDC`,
+      "Click Refresh, then Place Bid.",
+    ],
+    proof: "Save bid txHash/explorer link and highestBid before cancellation.",
+  },
+  {
+    title: "97C. ArcAuction Cancel Auction",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionCancelTitle}`,
+      `Cancel URI: ${auctionCancelURI}`,
+      `Expected refund: ${productPlan.auctionMinBid} native USDC back to the highest bidder.`,
+      "Click Cancel Auction after the bid confirms.",
+    ],
+    proof: "Save cancelAuction txHash/explorer link and final status = canceled.",
   },
   {
     title: "98. ArcRental Create Rental",

@@ -1,4 +1,4 @@
-﻿var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
+var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
 var global = globalThis;
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -7183,9 +7183,9 @@ function wNAF(c, bits) {
      * Creates a wNAF precomputation window. Used for caching.
      * Default window size is set by `utils.precompute()` and is equal to 8.
      * Number of precomputed points depends on the curve size:
-     * 2^(?몜??) * (Math.ceil(?몳 / ?몜) + 1), where:
-     * - ?몜 is the window size
-     * - ?몳 is the bitlength of the curve order.
+     * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
+     * - 𝑊 is the window size
+     * - 𝑛 is the bitlength of the curve order.
      * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
      * @param elm Point instance
      * @param W window size
@@ -7747,7 +7747,7 @@ function weierstrassPoints(opts) {
     }
     // Converts Projective point to affine (x, y) coordinates.
     // Can accept precomputed Z^-1 - for example, from invertBatch.
-    // (x, y, z) ??(x=x/z, y=y/z)
+    // (x, y, z) ∋ (x=x/z, y=y/z)
     toAffine(iz) {
       return toAffineMemo(this, iz);
     }
@@ -19462,9 +19462,9 @@ function wNAF2(c, bits) {
      * Creates a wNAF precomputation window. Used for caching.
      * Default window size is set by `utils.precompute()` and is equal to 8.
      * Number of precomputed points depends on the curve size:
-     * 2^(?몜??) * (Math.ceil(?몳 / ?몜) + 1), where:
-     * - ?몜 is the window size
-     * - ?몳 is the bitlength of the curve order.
+     * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
+     * - 𝑊 is the window size
+     * - 𝑛 is the bitlength of the curve order.
      * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
      * @param elm Point instance
      * @param W window size
@@ -20125,7 +20125,7 @@ function weierstrassPoints2(opts) {
     }
     // Converts Projective point to affine (x, y) coordinates.
     // Can accept precomputed Z^-1 - for example, from invertBatch.
-    // (x, y, z) ??(x=x/z, y=y/z)
+    // (x, y, z) ∋ (x=x/z, y=y/z)
     toAffine(iz) {
       return toAffineMemo(this, iz);
     }
@@ -24125,6 +24125,13 @@ function errorMessage(error) {
   console.error(error);
   return error instanceof Error ? error.message : "Unknown error.";
 }
+async function waitForSuccess(hash3, action) {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: hash3 });
+  if (receipt.status !== "success") {
+    throw new Error(`${action} reverted. Tx: ${hash3}`);
+  }
+  return receipt;
+}
 function auctionId() {
   const title = el.title.value.trim();
   if (!title) throw new Error("Title is required.");
@@ -24301,7 +24308,7 @@ async function deployContract2() {
       chain: arcTestnet
     });
     setStatus("Deploy submitted:", hash3);
-    const receipt = await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    const receipt = await waitForSuccess(hash3, "Deployment");
     if (!receipt.contractAddress) throw new Error("Deployment receipt did not include a contract address.");
     contractAddress = receipt.contractAddress;
     el.contractAddress.value = contractAddress;
@@ -24380,7 +24387,7 @@ async function createAuction() {
       chain: arcTestnet
     });
     setStatus("Create submitted:", hash3);
-    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    await waitForSuccess(hash3, "Create auction");
     await refreshAuction();
     setStatus("Auction created:", hash3);
   } catch (error) {
@@ -24404,7 +24411,7 @@ async function bidAmount(amount, label) {
       value: amount
     });
     setStatus(`${label} submitted:`, hash3);
-    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    await waitForSuccess(hash3, label);
     await refreshBalance();
     await refreshAuction();
     setStatus(`${label} confirmed:`, hash3);
@@ -24439,7 +24446,7 @@ async function settleAuction() {
       chain: arcTestnet
     });
     setStatus("Settle submitted:", hash3);
-    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    await waitForSuccess(hash3, "Settle auction");
     await refreshBalance();
     await refreshAuction();
     setStatus("Auction settled:", hash3);
@@ -24466,7 +24473,7 @@ async function cancelAuction() {
       chain: arcTestnet
     });
     setStatus("Cancel submitted:", hash3);
-    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    await waitForSuccess(hash3, "Cancel auction");
     await refreshBalance();
     await refreshAuction();
     setStatus("Auction canceled:", hash3);
@@ -24478,6 +24485,7 @@ async function cancelAuction() {
 }
 async function runAutoFlow() {
   if (params.get("autorun") !== "1") return;
+  const mode = params.get("mode") === "cancel" ? "cancel" : "settle";
   setStatus("Auto flow starting. Approve each MetaMask request as it appears.");
   await connect();
   if (!walletClient || !account) return;
@@ -24497,16 +24505,21 @@ async function runAutoFlow() {
       await bidAmount(minBid, "Placing bid");
       await refreshAuction();
     }
-    if (currentAuction && currentAuction.highestBid < raisedBid) {
+    if (mode === "cancel") {
+      if (currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
+        await cancelAuction();
+        await refreshAuction();
+      }
+    } else if (currentAuction && currentAuction.highestBid < raisedBid) {
       await bidAmount(raisedBid, "Raising bid");
       await refreshAuction();
     }
-    if (currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
+    if (mode === "settle" && currentAuction && !currentAuction.closed && currentAuction.highestBidder !== ZERO_ADDRESS) {
       await settleAuction();
       await refreshAuction();
     }
   }
-  setStatus(`Auto flow complete for ${contractAddress}.`);
+  setStatus(`Auto ${mode} flow complete for ${contractAddress}.`);
 }
 el.cancelAuction.addEventListener("click", () => void cancelAuction());
 el.connect.addEventListener("click", () => void connect());
